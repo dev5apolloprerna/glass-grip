@@ -38,7 +38,7 @@ Route::middleware('auth')->group(function () {
 
     // Customer ledger entries - both roles may enter payments
     Route::post('customers/{customer}/ledger', [CustomerController::class, 'storeLedgerEntry'])->name('customers.ledger.store');
-    Route::get('customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
+   // Route::get('customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
 
     // Super Admin only
     Route::middleware('role:super_admin')->group(function () {
@@ -52,4 +52,5 @@ Route::middleware('auth')->group(function () {
         Route::get('reports/customer-ledger', [ReportController::class, 'customerLedger'])->name('reports.customer-ledger');
         Route::get('reports/sales', [ReportController::class, 'sales'])->name('reports.sales');
     });
+        Route::get('customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
 });
