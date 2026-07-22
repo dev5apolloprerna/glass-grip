@@ -120,14 +120,19 @@ class QuotationController extends Controller
     {
         $this->authorizeAccess($quotation);
 
-        if (! $quotation->isEditable()) {
-            return back()->with('error', 'Approved quotations cannot be deleted.');
-        }
+         DB::transaction(function () use ($quotation) {
+            if ($quotation->invoice) {
+                CustomerLedger::where('reference_type', 'invoice')
+                    ->where('reference_id', $quotation->invoice->id)
+                    ->delete();
+            }
 
-        $quotation->items()->delete();
-        $quotation->delete();
+            $quotation->items()->delete();
+            $quotation->delete();
+        });
 
         return redirect()->route('quotations.index')->with('success', 'Quotation deleted successfully.');
+        
     }
 
     /**
@@ -178,6 +183,18 @@ class QuotationController extends Controller
         });
 
         return redirect()->route('quotations.show', $quotation)->with('success', 'Quotation approved and invoice generated.');
+    }
+     public function reject(Quotation $quotation)
+    {
+        $this->authorizeAccess($quotation);
+
+        if (! $quotation->isEditable()) {
+            return back()->with('error', 'Only draft quotations can be rejected.');
+        }
+
+        $quotation->update(['status' => 'rejected']);
+
+        return redirect()->route('quotations.show', $quotation)->with('success', 'Quotation rejected successfully.');
     }
 
     /**

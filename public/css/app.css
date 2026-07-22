@@ -346,6 +346,7 @@ table.table td.wrap { white-space: normal; }
 }
 .pill-draft { background: #fef3c7; color: #92400e; }
 .pill-approved { background: #dcfce7; color: #166534; }
+.pill-rejected { background: #fee2e2; color: #991b1b; }
 .pill-active { background: #dcfce7; color: #166534; }
 .pill-inactive { background: #fee2e2; color: #991b1b; }
 .pill-due { background: #fee2e2; color: #991b1b; }
