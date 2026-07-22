@@ -13,14 +13,30 @@
                         @csrf
                         <button type="submit" class="btn btn-success btn-sm">Approve &amp; Generate Invoice</button>
                     </form>
+
+                    <form method="POST" action="{{ route('quotations.reject', $quotation) }}" style="display:inline;" data-confirm="Reject this quotation?">
+                        @csrf
+                        <button type="submit" class="btn btn-warning btn-sm">Reject</button>
+                    </form>
                     <form method="POST" action="{{ route('quotations.destroy', $quotation) }}" style="display:inline;" data-confirm="Delete this quotation?">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                     </form>
-                @else
+                @elseif($quotation->status === 'approved')
                     <a href="{{ route('invoices.show', $quotation->invoice) }}" class="btn btn-primary btn-sm">View Invoice</a>
                     <a href="{{ route('invoices.download', $quotation->invoice) }}" class="btn btn-secondary btn-sm">Download PDF</a>
+                    <form method="POST" action="{{ route('quotations.destroy', $quotation) }}" style="display:inline;" data-confirm="Delete this approved quotation? This will also delete the generated invoice and ledger entry.">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                    </form>
+                @else
+                    <form method="POST" action="{{ route('quotations.destroy', $quotation) }}" style="display:inline;" data-confirm="Delete this quotation?">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                    </form>
                 @endif
                 <a href="{{ route('quotations.index') }}" class="btn btn-secondary btn-sm">&larr; Back</a>
             </div>

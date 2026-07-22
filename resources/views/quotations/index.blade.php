@@ -20,6 +20,7 @@
                         <option value="">All</option>
                         <option value="draft" {{ $status === 'draft' ? 'selected' : '' }}>Draft</option>
                         <option value="approved" {{ $status === 'approved' ? 'selected' : '' }}>Approved</option>
+                        <option value="rejected" {{ $status === 'rejected' ? 'selected' : '' }}>Rejected</option>
                     </select>
                 </div>
                 <button type="submit" class="btn btn-secondary">Filter</button>
@@ -54,7 +55,16 @@
                                     <a href="{{ route('quotations.show', $q) }}" class="btn btn-secondary btn-sm">View</a>
                                     @if($q->isEditable())
                                         <a href="{{ route('quotations.edit', $q) }}" class="btn btn-secondary btn-sm">Edit</a>
+                                        <form method="POST" action="{{ route('quotations.reject', $q) }}" style="display:inline;" data-confirm="Reject this quotation?">
+                                            @csrf
+                                            <button type="submit" class="btn btn-warning btn-sm">Reject</button>
+                                        </form>
                                     @endif
+                                    <form method="POST" action="{{ route('quotations.destroy', $q) }}" style="display:inline;" data-confirm="Delete this quotation? @if($q->status === 'approved') This will also delete the generated invoice and ledger entry. @endif">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                    </form>
                                 </td>
                             </tr>
                         @empty

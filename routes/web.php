@@ -30,6 +30,7 @@ Route::middleware('auth')->group(function () {
     // Quotations - accessible to both roles (user creates/manages own, super_admin sees all)
     Route::resource('quotations', QuotationController::class);
     Route::post('quotations/{quotation}/approve', [QuotationController::class, 'approve'])->name('quotations.approve');
+        Route::post('quotations/{quotation}/reject', [QuotationController::class, 'reject'])->name('quotations.reject');
     Route::get('ajax/last-price', [QuotationController::class, 'lastPrice'])->name('quotations.last-price');
 
     // Invoices
