@@ -25,6 +25,18 @@
                     <p class="text-muted mb-0">Quotation No.</p>
                     <p>{{ $invoice->quotation->quotation_number }}</p>
                 </div>
+                <div>
+                    <p class="text-muted mb-0">Payment Status</p>
+                    <p>
+                        @if($balanceDue <= 0)
+                            <span class="pill pill-approved">Fully Paid{{ $balanceDue < 0 ? ' (Overpaid)' : '' }}</span>
+                        @elseif($totalPaid > 0)
+                            <span class="pill pill-draft">Partially Paid</span>
+                        @else
+                            <span class="pill pill-due">Unpaid</span>
+                        @endif
+                    </p>
+                </div>
             </div>
         </div>
     </div>
@@ -63,7 +75,95 @@
                     <div class="row"><span>GST (18%)</span><span>&#8377;{{ number_format($invoice->gst_amount, 2) }}</span></div>
                 @endif
                 <div class="row grand"><span>Total</span><span>&#8377;{{ number_format($invoice->total_amount, 2) }}</span></div>
+                <div class="row"><span>Paid</span><span class="text-success">&#8377;{{ number_format($totalPaid, 2) }}</span></div>
+                <div class="row"><span>Balance Due</span><span class="{{ $balanceDue > 0 ? 'text-danger' : 'text-success' }}">&#8377;{{ number_format($balanceDue, 2) }}</span></div>
             </div>
         </div>
     </div>
+<div class="card">
+        <div class="card-header"><h3>Collect Payment</h3></div>
+        <div class="card-body">
+            @if($balanceDue > 0)
+                <form method="POST" action="{{ route('payments.store', $invoice) }}">
+                    @csrf
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Payment Date *</label>
+                            <input type="date" name="payment_date" class="form-control" value="{{ now()->toDateString() }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Amount (&#8377;) *</label>
+                            <input type="number" step="0.01" min="0.01" max="{{ $balanceDue }}" name="amount" class="form-control" value="{{ number_format($balanceDue, 2, '.', '') }}" required>
+                            <div class="form-hint">Balance due: &#8377;{{ number_format($balanceDue, 2) }}</div>
+                        </div>
+                        <div class="form-group">
+                            <label>Payment Method</label>
+                            <select name="payment_method" class="form-control">
+                                <option value="cash">Cash</option>
+                                <option value="cheque">Cheque</option>
+                                <option value="bank_transfer">Bank Transfer</option>
+                                <option value="upi">UPI</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Reference No.</label>
+                            <input type="text" name="reference_number" class="form-control" placeholder="Cheque/UTR no...">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Notes</label>
+                        <input type="text" name="notes" class="form-control">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Record Payment</button>
+                </form>
+            @else
+                <p class="text-success mb-0">This invoice has been fully paid. No balance is due.</p>
+            @endif
+        </div>
+    </div>
+
+    @if($invoice->payments->count())
+        <div class="card">
+            <div class="card-header"><h3>Payment History</h3></div>
+            <div class="card-body table-wrap">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th class="text-right">Amount</th>
+                            <th>Method</th>
+                            <th>Reference</th>
+                            <th>Notes</th>
+                            <th>Collected By</th>
+                            @if(auth()->user()->isSuperAdmin())
+                                <th>Actions</th>
+                            @endif
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($invoice->payments as $payment)
+                            <tr>
+                                <td>{{ $payment->payment_date->format('d M Y') }}</td>
+                                <td class="text-right text-success">&#8377;{{ number_format($payment->amount, 2) }}</td>
+                                <td style="text-transform:capitalize;">{{ str_replace('_', ' ', $payment->payment_method) ?: '-' }}</td>
+                                <td>{{ $payment->reference_number ?: '-' }}</td>
+                                <td class="wrap">{{ $payment->notes ?: '-' }}</td>
+                                <td>{{ $payment->enteredBy->name ?? '-' }}</td>
+                                @if(auth()->user()->isSuperAdmin())
+                                    <td>
+                                        <form method="POST" action="{{ route('payments.destroy', $payment) }}" data-confirm="Remove this payment entry?">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                                        </form>
+                                    </td>
+                                @endif
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    @endif
 @endsection

@@ -5,6 +5,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\NumberSettingController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\ReportController;
@@ -22,7 +23,7 @@ Route::middleware('guest')->group(function () {
 });
 
 // Authenticated routes
-Route::middleware('auth')->group(function () {
+  Route::middleware('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -30,12 +31,19 @@ Route::middleware('auth')->group(function () {
     // Quotations - accessible to both roles (user creates/manages own, super_admin sees all)
     Route::resource('quotations', QuotationController::class);
     Route::post('quotations/{quotation}/approve', [QuotationController::class, 'approve'])->name('quotations.approve');
-        Route::post('quotations/{quotation}/reject', [QuotationController::class, 'reject'])->name('quotations.reject');
+    Route::post('quotations/{quotation}/reject', [QuotationController::class, 'reject'])->name('quotations.reject');
+    Route::post('quotations/{quotation}/duplicate', [QuotationController::class, 'duplicate'])->name('quotations.duplicate');
+
     Route::get('ajax/last-price', [QuotationController::class, 'lastPrice'])->name('quotations.last-price');
 
     // Invoices
     Route::get('invoices/{invoice}', [InvoiceController::class, 'show'])->name('invoices.show');
     Route::get('invoices/{invoice}/download', [InvoiceController::class, 'download'])->name('invoices.download');
+
+    // Payment collection against a specific invoice
+    Route::post('invoices/{invoice}/payments', [PaymentController::class, 'store'])->name('payments.store');
+    Route::delete('payments/{payment}', [PaymentController::class, 'destroy'])->name('payments.destroy');
+
 
     // Customer ledger entries - both roles may enter payments
     Route::post('customers/{customer}/ledger', [CustomerController::class, 'storeLedgerEntry'])->name('customers.ledger.store');

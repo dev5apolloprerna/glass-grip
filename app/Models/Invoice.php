@@ -38,4 +38,18 @@ class Invoice extends Model
     {
         return $this->belongsTo(Customer::class);
     }
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    public function totalPaid(): float
+    {
+        return (float) $this->payments()->sum('amount');
+    }
+
+    public function balanceDue(): float
+    {
+        return (float) $this->total_amount - $this->totalPaid();
+    }
 }

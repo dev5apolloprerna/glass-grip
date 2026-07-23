@@ -38,6 +38,10 @@
                         <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                     </form>
                 @endif
+                <form method="POST" action="{{ route('quotations.duplicate', $quotation) }}" style="display:inline;" data-confirm="Create a new draft quotation copied from this one?">
+                    @csrf
+                    <button type="submit" class="btn btn-secondary btn-sm">Duplicate</button>
+                </form>
                 <a href="{{ route('quotations.index') }}" class="btn btn-secondary btn-sm">&larr; Back</a>
             </div>
         </div>
