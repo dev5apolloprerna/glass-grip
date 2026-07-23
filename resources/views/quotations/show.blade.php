@@ -26,6 +26,7 @@
                 @elseif($quotation->status === 'approved')
                     <a href="{{ route('invoices.show', $quotation->invoice) }}" class="btn btn-primary btn-sm">View Invoice</a>
                     <a href="{{ route('invoices.download', $quotation->invoice) }}" class="btn btn-secondary btn-sm">Download PDF</a>
+                    <a href="{{ route('invoices.show', $quotation->invoice) }}#collect-payment" class="btn btn-success btn-sm">Collect Payment</a>
                     <form method="POST" action="{{ route('quotations.destroy', $quotation) }}" style="display:inline;" data-confirm="Delete this approved quotation? This will also delete the generated invoice and ledger entry.">
                         @csrf
                         @method('DELETE')
@@ -40,7 +41,7 @@
                 @endif
                 <form method="POST" action="{{ route('quotations.duplicate', $quotation) }}" style="display:inline;" data-confirm="Create a new draft quotation copied from this one?">
                     @csrf
-                    <button type="submit" class="btn btn-secondary btn-sm">Duplicate</button>
+                    <button type="submit" class="btn btn-secondary btn-sm">Copy</button>
                 </form>
                 <a href="{{ route('quotations.index') }}" class="btn btn-secondary btn-sm">&larr; Back</a>
             </div>
@@ -87,9 +88,10 @@
         <div class="card-header"><h3>Products</h3></div>
         <div class="card-body table-wrap">
             <table class="table">
-                <thead>
+                 <thead>
                     <tr>
                         <th>Product</th>
+                        <th>Despatch To</th>
                         <th class="text-right">Size (Mtr)</th>
                         <th class="text-right"># Rolls</th>
                         <th class="text-right">Total Mtr</th>
@@ -98,9 +100,10 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($quotation->items as $item)
+                     @foreach($quotation->items as $item)
                         <tr>
                             <td>{{ $item->product->name }}</td>
+                            <td>{{ $item->despatch_to ?: '-' }}</td>
                             <td class="text-right">{{ number_format($item->size_mtr, 2) }}</td>
                             <td class="text-right">{{ $item->no_of_rolls }}</td>
                             <td class="text-right">{{ number_format($item->total_mtr, 2) }}</td>
@@ -111,10 +114,17 @@
                 </tbody>
             </table>
 
-            <div class="totals-box">
+           <div class="totals-box">
                 <div class="row"><span>Sub Total</span><span>&#8377;{{ number_format($quotation->sub_total, 2) }}</span></div>
+                @if($quotation->discount_amount > 0)
+                    <div class="row"><span>Discount</span><span>-&#8377;{{ number_format($quotation->discount_amount, 2) }}</span></div>
+                @endif
                 @if($quotation->gst_applicable)
                     <div class="row"><span>GST (18%)</span><span>&#8377;{{ number_format($quotation->gst_amount, 2) }}</span></div>
+                @endif
+               
+                @if($quotation->round_off != 0)
+                    <div class="row"><span>Round Off</span><span>{{ $quotation->round_off > 0 ? '+' : '' }}&#8377;{{ number_format($quotation->round_off, 2) }}</span></div>
                 @endif
                 <div class="row grand"><span>Total</span><span>&#8377;{{ number_format($quotation->total_amount, 2) }}</span></div>
             </div>

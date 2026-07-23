@@ -48,6 +48,7 @@
                 <thead>
                     <tr>
                         <th>Product</th>
+                        <th>Despatch To</th>
                         <th class="text-right">Size (Mtr)</th>
                         <th class="text-right"># Rolls</th>
                         <th class="text-right">Total Mtr</th>
@@ -59,6 +60,7 @@
                     @foreach($invoice->quotation->items as $item)
                         <tr>
                             <td>{{ $item->product->name }}</td>
+                            <td>{{ $item->despatch_to ?: '-' }}</td>
                             <td class="text-right">{{ number_format($item->size_mtr, 2) }}</td>
                             <td class="text-right">{{ $item->no_of_rolls }}</td>
                             <td class="text-right">{{ number_format($item->total_mtr, 2) }}</td>
@@ -74,13 +76,20 @@
                 @if($invoice->gst_amount > 0)
                     <div class="row"><span>GST (18%)</span><span>&#8377;{{ number_format($invoice->gst_amount, 2) }}</span></div>
                 @endif
+                @if($invoice->discount_amount > 0)
+                    <div class="row"><span>Discount</span><span>-&#8377;{{ number_format($invoice->discount_amount, 2) }}</span></div>
+                @endif
+                @if($invoice->round_off != 0)
+                    <div class="row"><span>Round Off</span><span>{{ $invoice->round_off > 0 ? '+' : '' }}&#8377;{{ number_format($invoice->round_off, 2) }}</span></div>
+                @endif
                 <div class="row grand"><span>Total</span><span>&#8377;{{ number_format($invoice->total_amount, 2) }}</span></div>
-                <div class="row"><span>Paid</span><span class="text-success">&#8377;{{ number_format($totalPaid, 2) }}</span></div>
+                <div class="row"><span>Amount Received</span><span class="text-success">&#8377;{{ number_format($totalPaid, 2) }}</span></div>
                 <div class="row"><span>Balance Due</span><span class="{{ $balanceDue > 0 ? 'text-danger' : 'text-success' }}">&#8377;{{ number_format($balanceDue, 2) }}</span></div>
             </div>
         </div>
     </div>
-<div class="card">
+
+    <div class="card" id="collect-payment">
         <div class="card-header"><h3>Collect Payment</h3></div>
         <div class="card-body">
             @if($balanceDue > 0)
@@ -92,7 +101,7 @@
                             <input type="date" name="payment_date" class="form-control" value="{{ now()->toDateString() }}" required>
                         </div>
                         <div class="form-group">
-                            <label>Amount (&#8377;) *</label>
+                            <label>Amount Received (&#8377;) *</label>
                             <input type="number" step="0.01" min="0.01" max="{{ $balanceDue }}" name="amount" class="form-control" value="{{ number_format($balanceDue, 2, '.', '') }}" required>
                             <div class="form-hint">Balance due: &#8377;{{ number_format($balanceDue, 2) }}</div>
                         </div>

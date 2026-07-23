@@ -16,6 +16,8 @@ class Invoice extends Model
         'invoice_date',
         'sub_total',
         'gst_amount',
+        'discount_amount',
+        'round_off',
         'total_amount',
     ];
 
@@ -25,6 +27,8 @@ class Invoice extends Model
             'invoice_date' => 'date',
             'sub_total' => 'decimal:2',
             'gst_amount' => 'decimal:2',
+            'discount_amount' => 'decimal:2',
+            'round_off' => 'decimal:2',
             'total_amount' => 'decimal:2',
         ];
     }
@@ -38,6 +42,7 @@ class Invoice extends Model
     {
         return $this->belongsTo(Customer::class);
     }
+
     public function payments()
     {
         return $this->hasMany(Payment::class);

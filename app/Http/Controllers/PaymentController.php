@@ -26,12 +26,19 @@ class PaymentController extends Controller
             'notes' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        DB::transaction(function () use ($invoice, $data) {
+        $amount = (float) $data['amount'];
+        $balanceDue = $invoice->balanceDue();
+
+        if ($amount > $balanceDue + 0.01) {
+            return back()->withErrors(['amount' => 'Amount cannot exceed the balance due (₹' . number_format($balanceDue, 2) . ').'])->withInput();
+        }
+
+        DB::transaction(function () use ($invoice, $data, $amount) {
             $payment = Payment::create([
                 'invoice_id' => $invoice->id,
                 'customer_id' => $invoice->customer_id,
                 'payment_date' => $data['payment_date'],
-                'amount' => $data['amount'],
+                'amount' => $amount,
                 'payment_method' => $data['payment_method'] ?? null,
                 'reference_number' => $data['reference_number'] ?? null,
                 'notes' => $data['notes'] ?? null,
@@ -39,12 +46,12 @@ class PaymentController extends Controller
             ]);
 
             $customer = $invoice->customer;
-            $newBalance = $customer->currentBalance() - (float) $payment->amount;
+            $newBalance = $customer->currentBalance() - $amount;
 
             CustomerLedger::create([
                 'customer_id' => $customer->id,
                 'transaction_date' => $payment->payment_date,
-                'amount' => -abs($payment->amount),
+                'amount' => -abs($amount),
                 'description' => 'Payment received for Invoice ' . $invoice->invoice_number,
                 'reference_type' => 'payment',
                 'reference_id' => $payment->id,

@@ -67,7 +67,7 @@
                                     </form>
                                      <form method="POST" action="{{ route('quotations.duplicate', $q) }}" style="display:inline;" data-confirm="Create a new draft quotation copied from this one?">
                                         @csrf
-                                        <button type="submit" class="btn btn-secondary btn-sm">Duplicate</button>
+                                        <button type="submit" class="btn btn-secondary btn-sm">Copy</button>
                                     </form>
                                 </td>
                             </tr>

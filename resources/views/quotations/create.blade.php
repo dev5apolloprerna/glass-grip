@@ -33,6 +33,10 @@
                             <label for="gst_applicable" style="margin:0; font-weight:400;">Apply GST @ 18%</label>
                         </div>
                     </div>
+                    <div class="form-group">
+                        <label for="discount_amount">Discount Amount (&#8377;) <span class="text-muted" style="font-weight:400;">(optional)</span></label>
+                        <input type="number" step="0.01" min="0" class="form-control" id="discount_amount" name="discount_amount" value="{{ old('discount_amount', 0) }}">
+                    </div>
                 </div>
 
                 <div class="card" style="box-shadow:none; border:1px solid var(--color-border); margin-top:10px;">
@@ -45,7 +49,10 @@
 
                         <div class="totals-box">
                             <div class="row"><span>Sub Total</span><span>&#8377;<span id="summarySubTotal">0.00</span></span></div>
+                            <div class="row" id="summaryDiscountRow" style="display:none;"><span>Discount</span><span>-&#8377;<span id="summaryDiscountAmount">0.00</span></span></div>
                             <div class="row" id="summaryGstRow" style="display:none;"><span>GST (18%)</span><span>&#8377;<span id="summaryGstAmount">0.00</span></span></div>
+                            
+                            <div class="row"><span>Round Off</span><span id="summaryRoundOff">&#8377;0.00</span></div>
                             <div class="row grand"><span>Total</span><span>&#8377;<span id="summaryTotal">0.00</span></span></div>
                         </div>
                     </div>
