@@ -36,6 +36,7 @@ function initQuotationBuilder() {
   var template = document.getElementById('itemRowTemplate');
   var customerSelect = document.getElementById('customer_id');
   var gstCheckbox = document.getElementById('gst_applicable');
+  var discountInput = document.getElementById('discount_amount');
   var rowIndex = parseInt(container.getAttribute('data-next-index'), 10) || 0;
 
   function bindRow(row) {
@@ -130,14 +131,25 @@ function initQuotationBuilder() {
     });
 
     var gstApplicable = gstCheckbox && gstCheckbox.checked;
-    var gstAmount = gstApplicable ? subTotal * 0.18 : 0;
-    var total = subTotal + gstAmount;
+    var discount = discountInput ? (parseFloat(discountInput.value) || 0) : 0;
+    var discountedSubTotal = subTotal - discount;
+    var gstAmount = gstApplicable ? discountedSubTotal * 0.18 : 0;
+
+    var beforeRounding = discountedSubTotal + gstAmount;
+    var roundedTotal = Math.round(beforeRounding);
+    var roundOff = roundedTotal - beforeRounding;
 
     setText('summarySubTotal', formatMoney(subTotal));
     setText('summaryGstAmount', formatMoney(gstAmount));
-    setText('summaryTotal', formatMoney(total));
+    setText('summaryDiscountAmount', formatMoney(discount));
+    setText('summaryRoundOff', (roundOff >= 0 ? '+' : '-') + '\u20b9' + formatMoney(Math.abs(roundOff)));
+    setText('summaryTotal', formatMoney(roundedTotal));
+
     var gstRow = document.getElementById('summaryGstRow');
     if (gstRow) gstRow.style.display = gstApplicable ? 'flex' : 'none';
+
+    var discountRow = document.getElementById('summaryDiscountRow');
+    if (discountRow) discountRow.style.display = discount > 0 ? 'flex' : 'none';
   }
 
   function setText(id, text) {
@@ -153,6 +165,7 @@ function initQuotationBuilder() {
   container.querySelectorAll('.item-row').forEach(bindRow);
   addBtn.addEventListener('click', addRow);
   if (gstCheckbox) gstCheckbox.addEventListener('change', recalcTotals);
+  if (discountInput) discountInput.addEventListener('input', recalcTotals);
 
   // If creating fresh, start with one row.
   if (container.querySelectorAll('.item-row').length === 0) {

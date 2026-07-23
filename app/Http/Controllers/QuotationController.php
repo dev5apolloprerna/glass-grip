@@ -21,7 +21,7 @@ class QuotationController extends Controller
         $search = $request->get('search');
         $status = $request->get('status');
 
-        $quotations = Quotation::with(['customer', 'user'])
+        $quotations = Quotation::with(['customer', 'user', 'invoice'])
             ->when(! $user->isSuperAdmin(), fn ($q) => $q->where('user_id', $user->id))
             ->when($search, function ($q) use ($search) {
                 $q->where(function ($qq) use ($search) {
@@ -57,6 +57,7 @@ class QuotationController extends Controller
                 'quotation_date' => $data['quotation_date'],
                 'status' => 'draft',
                 'gst_applicable' => $data['gst_applicable'] ?? false,
+                'discount_amount' => $data['discount_amount'] ?? 0,
             ]);
 
             $this->syncItems($quotation, $data['items']);
@@ -106,6 +107,7 @@ class QuotationController extends Controller
                 'customer_id' => $data['customer_id'],
                 'quotation_date' => $data['quotation_date'],
                 'gst_applicable' => $data['gst_applicable'] ?? false,
+                'discount_amount' => $data['discount_amount'] ?? 0,
             ]);
 
             $quotation->items()->delete();
@@ -120,19 +122,14 @@ class QuotationController extends Controller
     {
         $this->authorizeAccess($quotation);
 
-         DB::transaction(function () use ($quotation) {
-            if ($quotation->invoice) {
-                CustomerLedger::where('reference_type', 'invoice')
-                    ->where('reference_id', $quotation->invoice->id)
-                    ->delete();
-            }
+        if (! $quotation->isEditable()) {
+            return back()->with('error', 'Approved quotations cannot be deleted.');
+        }
 
-            $quotation->items()->delete();
-            $quotation->delete();
-        });
+        $quotation->items()->delete();
+        $quotation->delete();
 
         return redirect()->route('quotations.index')->with('success', 'Quotation deleted successfully.');
-        
     }
 
     /**
@@ -164,6 +161,8 @@ class QuotationController extends Controller
                 'invoice_date' => now()->toDateString(),
                 'sub_total' => $quotation->sub_total,
                 'gst_amount' => $quotation->gst_amount,
+                'discount_amount' => $quotation->discount_amount,
+                'round_off' => $quotation->round_off,
                 'total_amount' => $quotation->total_amount,
             ]);
 
@@ -195,6 +194,47 @@ class QuotationController extends Controller
         $quotation->update(['status' => 'rejected']);
 
         return redirect()->route('quotations.show', $quotation)->with('success', 'Quotation rejected successfully.');
+    }
+
+    /**
+     * Create a new draft quotation copied from this one (same customer, GST setting, and line items).
+     */
+    public function duplicate(Quotation $quotation)
+    {
+        $this->authorizeAccess($quotation);
+        $quotation->load('items');
+
+        $newQuotation = DB::transaction(function () use ($quotation) {
+            $copy = Quotation::create([
+                'quotation_number' => NumberSetting::generateNext('quotation'),
+                'customer_id' => $quotation->customer_id,
+                'user_id' => Auth::id(),
+                'quotation_date' => now()->toDateString(),
+                'status' => 'draft',
+                'gst_applicable' => $quotation->gst_applicable,
+                'discount_amount' => $quotation->discount_amount,
+            ]);
+
+            foreach ($quotation->items as $item) {
+                QuotationItem::create([
+                    'quotation_id' => $copy->id,
+                    'product_id' => $item->product_id,
+                    'despatch_to' => $item->despatch_to,
+                    'size_mtr' => $item->size_mtr,
+                    'no_of_rolls' => $item->no_of_rolls,
+                    'total_mtr' => $item->total_mtr,
+                    'price_per_mtr' => $item->price_per_mtr,
+                    'amount' => $item->amount,
+                ]);
+            }
+
+            $copy->recalculateTotals();
+
+            return $copy;
+        });
+
+        return redirect()->route('quotations.index')
+            ->with('success', "Quotation duplicated as {$newQuotation->quotation_number} (draft). Edit it any time before approving.");
     }
 
     /**
@@ -244,6 +284,7 @@ class QuotationController extends Controller
             QuotationItem::create([
                 'quotation_id' => $quotation->id,
                 'product_id' => $item['product_id'],
+                'despatch_to' => $item['despatch_to'] ?? null,
                 'size_mtr' => $sizeMtr,
                 'no_of_rolls' => $noOfRolls,
                 'total_mtr' => $totalMtr,
@@ -259,8 +300,10 @@ class QuotationController extends Controller
             'customer_id' => ['required', 'exists:customers,id'],
             'quotation_date' => ['required', 'date'],
             'gst_applicable' => ['nullable', 'boolean'],
+            'discount_amount' => ['nullable', 'numeric', 'min:0'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'exists:products,id'],
+            'items.*.despatch_to' => ['nullable', 'string', 'max:255'],
             'items.*.size_mtr' => ['required', 'numeric', 'min:0.01'],
             'items.*.no_of_rolls' => ['required', 'integer', 'min:1'],
             'items.*.price_per_mtr' => ['required', 'numeric', 'min:0'],

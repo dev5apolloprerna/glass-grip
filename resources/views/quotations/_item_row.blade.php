@@ -15,6 +15,10 @@
         <div class="form-hint js-last-price-hint" style="display:none;"></div>
     </div>
     <div class="form-group">
+        <label>Despatch To</label>
+        <input type="text" name="items[{{ $index }}][despatch_to]" class="form-control js-despatch" value="{{ optional($item)->despatch_to }}" placeholder="e.g. Jaipur">
+    </div>
+    <div class="form-group">
         <label>Size (Mtr)</label>
         <input type="number" step="0.01" min="0.01" name="items[{{ $index }}][size_mtr]" class="form-control js-size" value="{{ optional($item)->size_mtr }}" required>
     </div>
