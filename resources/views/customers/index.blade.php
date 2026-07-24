@@ -49,7 +49,7 @@
                                 <td>
                                     <a href="{{ route('customers.show', $customer) }}" class="btn btn-secondary btn-sm">View</a>
                                     <a href="{{ route('customers.edit', $customer) }}" class="btn btn-secondary btn-sm">Edit</a>
-                                    <form method="POST" action="{{ route('customers.destroy', $customer) }}" style="display:inline;" data-confirm="Delete this customer?">
+                                    <form method="POST" action="{{ route('customers.destroy', $customer) }}" style="display:inline;" data-confirm="Delete this customer? This will also permanently delete ALL their quotations, invoices, and payment history. This cannot be undone.">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-danger btn-sm">Delete</button>
