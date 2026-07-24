@@ -103,13 +103,24 @@ class CustomerController extends Controller
 
     public function destroy(Customer $customer)
     {
-        if ($customer->quotations()->exists()) {
-            return back()->with('error', 'Cannot delete a customer that has quotations/invoices.');
-        }
+        DB::transaction(function () use ($customer) {
+            $quotations = $customer->quotations()->with('invoice.payments')->get();
 
-        $customer->delete();
+            foreach ($quotations as $quotation) {
+                if ($quotation->invoice) {
+                    $quotation->invoice->payments()->delete();
+                    $quotation->invoice->delete();
+                }
+                $quotation->items()->delete();
+                $quotation->delete();
+            }
 
-        return redirect()->route('customers.index')->with('success', 'Customer deleted successfully.');
+            $customer->ledgers()->delete();
+            $customer->delete();
+        });
+
+        return redirect()->route('customers.index')
+            ->with('success', 'Customer deleted, along with all their quotations, invoices, and payment history.');
     }
 
     /**
