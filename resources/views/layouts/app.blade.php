@@ -20,7 +20,7 @@
 
                 @if(auth()->user()->isSuperAdmin())
                     <div class="sidebar-section">Masters</div>
-                    <a href="{{ route('customers.index') }}" class="{{ request()->routeIs('customers.*') ? 'active' : '' }}">Customers</a>
+                    <a href="{{ route('customers.index') }}" class="{{ request()->routeIs('customers.*') ? 'active' : '' }}">Company</a>
                     <a href="{{ route('products.index') }}" class="{{ request()->routeIs('products.*') ? 'active' : '' }}">Products</a>
                     <a href="{{ route('users.index') }}" class="{{ request()->routeIs('users.*') ? 'active' : '' }}">Users</a>
                     <a href="{{ route('number-settings.index') }}" class="{{ request()->routeIs('number-settings.*') ? 'active' : '' }}">Number Settings</a>

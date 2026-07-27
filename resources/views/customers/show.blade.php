@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Customer: ' . $customer->name)
+@section('title', 'Company: ' . $customer->name)
 
 @section('content')
     <div class="card">

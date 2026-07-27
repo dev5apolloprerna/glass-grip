@@ -48,8 +48,7 @@
                     </div>
                 @endif
                 <div class="stat-card">
-                    <div class="label">GST Collected</div>
-                    <div class="value">&#8377;{{ number_format($totals['gst_amount'], 2) }}</div>
+                    <div class="label">GST Collected</div><div class="value">&#8377;{{ number_format($totals['gst_amount'], 2) }}</div><small>CGST ₹{{ number_format($totals['cgst_amount'],2) }} · SGST ₹{{ number_format($totals['sgst_amount'],2) }} · IGST ₹{{ number_format($totals['igst_amount'],2) }}</small>
                 </div>
                 <div class="stat-card">
                     <div class="label">Net Amount</div>
@@ -68,7 +67,7 @@
                             <th class="text-right">Sub Total</th>
                             <th class="text-right">Discount</th>
                             <th class="text-right">Total Amount</th>
-                            <th class="text-right">GST</th>
+                            <th class="text-right">CGST</th><th class="text-right">SGST</th><th class="text-right">IGST</th>
                             <th class="text-right">Net Amount</th>
                         </tr>
                     </thead>
@@ -82,7 +81,7 @@
                                 <td class="text-right">&#8377;{{ number_format($invoice->sub_total, 2) }}</td>
                                 <td class="text-right">{{ $invoice->discount_amount > 0 ? '-₹' . number_format($invoice->discount_amount, 2) : '-' }}</td>
                                 <td class="text-right">&#8377;{{ number_format($invoice->sub_total - $invoice->discount_amount, 2) }}</td>
-                                <td class="text-right">&#8377;{{ number_format($invoice->gst_amount, 2) }}</td>
+                                <td class="text-right">&#8377;{{ number_format($invoice->cgst_amount, 2) }}</td><td class="text-right">&#8377;{{ number_format($invoice->sgst_amount, 2) }}</td><td class="text-right">&#8377;{{ number_format($invoice->igst_amount, 2) }}</td>
                                 <td class="text-right">&#8377;{{ number_format($invoice->total_amount, 2) }}</td>
                             </tr>
                         @empty

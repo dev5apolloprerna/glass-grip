@@ -22,7 +22,7 @@
                 <td class="label">Bill To</td>
                 <td>
                     <strong>{{ $invoice->customer->name }}</strong><br>
-                    @if($invoice->customer->address){{ $invoice->customer->address }}<br>@endif
+                    @if($invoice->customer->address){{ $invoice->customer->address }}<br>@endif @if($invoice->customer->address_line_2){{ $invoice->customer->address_line_2 }}<br>@endif {{ $invoice->customer->city }}, {{ $invoice->customer->state }} - {{ $invoice->customer->pincode }}<br>
                     @if($invoice->customer->phone)Phone: {{ $invoice->customer->phone }}<br>@endif
                     @if($invoice->customer->gst_number)GSTIN: {{ $invoice->customer->gst_number }}@endif
                 </td>
@@ -42,8 +42,7 @@
             <thead>
                 <tr>
                     <th>#</th>
-                    <th>Product</th>
-                    <th>Despatch To</th>
+                    <th>Product / Description</th><th>HSN</th>
                     <th class="text-right">Size (Mtr)</th>
                     <th class="text-right">No. of Rolls</th>
                     <th class="text-right">Total Mtr</th>
@@ -55,8 +54,7 @@
                 @foreach($invoice->quotation->items as $i => $item)
                     <tr>
                         <td>{{ $i + 1 }}</td>
-                        <td>{{ $item->product->name }}</td>
-                        <td>{{ $item->despatch_to ?: '-' }}</td>
+                        <td>{{ $item->product->name }}<br><small>{{ $item->product->description }}</small></td><td>{{ $item->product->hsn_code }}</td>
                         <td class="text-right">{{ number_format($item->size_mtr, 2) }}</td>
                         <td class="text-right">{{ $item->no_of_rolls }}</td>
                         <td class="text-right">{{ number_format($item->total_mtr, 2) }}</td>
@@ -74,7 +72,7 @@
                 <tr><td>Total Amount</td><td class="text-right">Rs. {{ number_format($invoice->sub_total - $invoice->discount_amount, 2) }}</td></tr>
             @endif
             @if($invoice->gst_amount > 0)
-                <tr><td>GST (18%)</td><td class="text-right">Rs. {{ number_format($invoice->gst_amount, 2) }}</td></tr>
+                @if($invoice->cgst_amount > 0)<tr><td>CGST (9%)</td><td class="text-right">Rs. {{ number_format($invoice->cgst_amount,2) }}</td></tr><tr><td>SGST (9%)</td><td class="text-right">Rs. {{ number_format($invoice->sgst_amount,2) }}</td></tr>@else<tr><td>IGST (18%)</td><td class="text-right">Rs. {{ number_format($invoice->igst_amount,2) }}</td></tr>@endif
             @endif
             @if($invoice->round_off != 0)
                 <tr><td>Round Off</td><td class="text-right">{{ $invoice->round_off > 0 ? '+' : '' }} Rs. {{ number_format($invoice->round_off, 2) }}</td></tr>

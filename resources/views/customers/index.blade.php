@@ -1,18 +1,18 @@
 @extends('layouts.app')
 
-@section('title', 'Customers')
+@section('title', 'Company')
 
 @section('content')
     <div class="card">
         <div class="card-header">
-            <h3>Customers</h3>
-            <a href="{{ route('customers.create') }}" class="btn btn-primary btn-sm">+ Add Customer</a>
+            <h3>Company</h3>
+            <a href="{{ route('customers.create') }}" class="btn btn-primary btn-sm">+ Add Company</a>
         </div>
         <div class="card-body">
             <form method="GET" class="filters-bar">
                 <div class="form-group">
                     <label>Search</label>
-                    <input type="text" name="search" class="form-control" value="{{ $search }}" placeholder="Name, phone, email, GST...">
+                    <input type="text" name="search" class="form-control" value="{{ $search }}" placeholder="Company name or state...">
                 </div>
                 <button type="submit" class="btn btn-secondary">Filter</button>
                 @if($search)
@@ -24,7 +24,8 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>Name</th>
+                            <th>Company Name</th>
+                            <th>State</th>
                             <th>Contact</th>
                             <th>GST No.</th>
                             <th class="text-right">Balance</th>
@@ -35,6 +36,7 @@
                         @forelse($customers as $customer)
                             <tr>
                                 <td><a href="{{ route('customers.show', $customer) }}">{{ $customer->name }}</a></td>
+                                <td>{{ $customer->state ?: '-' }}</td>
                                 <td>{{ $customer->phone ?: '-' }}</td>
                                 <td>{{ $customer->gst_number ?: '-' }}</td>
                                 <td class="text-right">
@@ -57,7 +59,7 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr><td colspan="5" class="text-center text-muted">No customers found.</td></tr>
+                            <tr><td colspan="6" class="text-center text-muted">No customers found.</td></tr>
                         @endforelse
                     </tbody>
                 </table>

@@ -71,6 +71,9 @@ class ReportController extends Controller
             'sub_total' => $invoices->sum('sub_total'),
             'discount_amount' => $invoices->sum('discount_amount'),
             'gst_amount' => $invoices->sum('gst_amount'),
+            'cgst_amount' => $invoices->sum('cgst_amount'),
+            'sgst_amount' => $invoices->sum('sgst_amount'),
+            'igst_amount' => $invoices->sum('igst_amount'),
             'total_amount' => $invoices->sum('total_amount'),
             'count' => $invoices->count(),
         ];

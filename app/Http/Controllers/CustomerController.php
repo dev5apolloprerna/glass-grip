@@ -20,7 +20,8 @@ class CustomerController extends Controller
                     $qq->where('name', 'like', "%{$search}%")
                         ->orWhere('phone', 'like', "%{$search}%")
                         ->orWhere('email', 'like', "%{$search}%")
-                        ->orWhere('gst_number', 'like', "%{$search}%");
+                        ->orWhere('gst_number', 'like', "%{$search}%")
+                        ->orWhere('state', 'like', "%{$search}%");
                 });
             })
             ->orderBy('name')
@@ -163,7 +164,11 @@ class CustomerController extends Controller
             'contact_person' => ['nullable', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:20'],
             'email' => ['nullable', 'email', 'max:255'],
-            'address' => ['nullable', 'string', 'max:2000'],
+            'address' => ['required', 'string', 'max:2000'],
+            'address_line_2' => ['nullable', 'string', 'max:2000'],
+            'state' => ['required', 'string', 'in:' . implode(',', config('states'))],
+            'city' => ['required', 'string', 'max:100'],
+            'pincode' => ['required', 'digits:6'],
             'gst_number' => ['nullable', 'string', 'max:50'],
             'opening_balance' => ['required', 'numeric'],
         ]);

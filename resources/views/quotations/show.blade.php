@@ -5,8 +5,10 @@
 @section('content')
     <div class="card">
         <div class="card-header">
-            <h3>{{ $quotation->quotation_number }} <span class="pill pill-{{ $quotation->status }}">{{ $quotation->status }}</span></h3>
+            <h3>{{ $quotation->quotation_number }} <span class="pill pill-{{ $quotation->status === 'draft' ? 'Quotation Ready' : ucfirst(str_replace('_', ' ', $quotation->document_status ?: $quotation->status)) }}">{{ $quotation->status === 'draft' ? 'Quotation Ready' : ucfirst(str_replace('_', ' ', $quotation->document_status ?: $quotation->status)) }}</span></h3>
             <div>
+                <a href="{{ route('quotations.download', $quotation) }}" class="btn btn-secondary btn-sm">Quotation PDF</a>
+                @if($quotation->document_status !== 'quotation_sent')<form method="POST" action="{{ route('quotations.mark-sent',$quotation) }}" style="display:inline">@csrf<button class="btn btn-success btn-sm">Mark Quotation Sent</button></form>@endif
                 @if($quotation->isEditable())
                     <a href="{{ route('quotations.edit', $quotation) }}" class="btn btn-secondary btn-sm">Edit</a>
                     <form method="POST" action="{{ route('quotations.approve', $quotation) }}" style="display:inline;" data-confirm="Approve this quotation? Once approved it cannot be edited and an invoice will be generated.">
@@ -91,7 +93,7 @@
                  <thead>
                     <tr>
                         <th>Product</th>
-                        <th>Despatch To</th>
+                        <!-- <th>Despatch To</th> -->
                         <th class="text-right">Size (Mtr)</th>
                         <th class="text-right"># Rolls</th>
                         <th class="text-right">Total Mtr</th>
@@ -102,8 +104,8 @@
                 <tbody>
                      @foreach($quotation->items as $item)
                         <tr>
-                            <td>{{ $item->product->name }}</td>
-                            <td>{{ $item->despatch_to ?: '-' }}</td>
+
+                            <td>{{ $item->product->name }}<br><small>HSN: {{ $item->product->hsn_code }} · {{ $item->product->description }}</small></td>
                             <td class="text-right">{{ number_format($item->size_mtr, 2) }}</td>
                             <td class="text-right">{{ $item->no_of_rolls }}</td>
                             <td class="text-right">{{ number_format($item->total_mtr, 2) }}</td>
@@ -121,7 +123,7 @@
                     <div class="row"><span>Total Amount</span><span>&#8377;{{ number_format($quotation->sub_total - $quotation->discount_amount, 2) }}</span></div>
                 @endif
                 @if($quotation->gst_applicable)
-                    <div class="row"><span>GST (18%)</span><span>&#8377;{{ number_format($quotation->gst_amount, 2) }}</span></div>
+                    @if($quotation->cgst_amount > 0)<div class="row"><span>CGST (9%)</span><span>&#8377;{{ number_format($quotation->cgst_amount,2) }}</span></div><div class="row"><span>SGST (9%)</span><span>&#8377;{{ number_format($quotation->sgst_amount,2) }}</span></div>@else<div class="row"><span>IGST (18%)</span><span>&#8377;{{ number_format($quotation->igst_amount,2) }}</span></div>@endif
                 @endif
                 @if($quotation->round_off != 0)
                     <div class="row"><span>Round Off</span><span>{{ $quotation->round_off > 0 ? '+' : '' }}&#8377;{{ number_format($quotation->round_off, 2) }}</span></div>

@@ -76,7 +76,7 @@ class ProductController extends Controller
             'code' => ['nullable', 'string', 'max:100', 'unique:products,code' . ($ignoreId ? ",{$ignoreId}" : '')],
             'description' => ['nullable', 'string', 'max:2000'],
             'unit' => ['required', 'string', 'max:20'],
-            'hsn_code' => ['nullable', 'string', 'max:50'],
+            'hsn_code' => ['required', 'digits_between:5,6'],
             'status' => ['required', 'in:active,inactive'],
         ]);
     }
