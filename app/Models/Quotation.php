@@ -23,6 +23,9 @@ class Quotation extends Model
         'total_amount',
         'approved_by',
         'approved_at',
+                'shipping_address_different', 'shipping_address', 'shipping_address_line_2',
+        'shipping_state', 'shipping_city', 'shipping_pincode',
+        'cgst_amount', 'sgst_amount', 'igst_amount', 'document_status',
     ];
 
     protected function casts(): array
@@ -30,8 +33,10 @@ class Quotation extends Model
         return [
             'quotation_date' => 'date',
             'gst_applicable' => 'boolean',
+                        'shipping_address_different' => 'boolean',
             'sub_total' => 'decimal:2',
             'gst_amount' => 'decimal:2',
+                        'cgst_amount' => 'decimal:2', 'sgst_amount' => 'decimal:2', 'igst_amount' => 'decimal:2',
             'discount_amount' => 'decimal:2',
             'round_off' => 'decimal:2',
             'total_amount' => 'decimal:2',
@@ -87,7 +92,11 @@ class Quotation extends Model
         $beforeRounding = $discountedSubTotal + $gstAmount;
         $roundedTotal = round($beforeRounding);
         $roundOff = round($roundedTotal - $beforeRounding, 2);
-
+        
+        $state = strtolower(trim((string) ($this->shipping_state ?: $this->customer?->state)));
+        $this->cgst_amount = $this->gst_applicable && $state === 'gujarat' ? round($gstAmount / 2, 2) : 0;
+        $this->sgst_amount = $this->gst_applicable && $state === 'gujarat' ? $gstAmount - $this->cgst_amount : 0;
+        $this->igst_amount = $this->gst_applicable && $state !== 'gujarat' ? $gstAmount : 0;
         $this->sub_total = $subTotal;
         $this->gst_amount = $gstAmount;
         $this->discount_amount = $discount;

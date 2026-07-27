@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\DeliveryChallanController;
 use App\Http\Controllers\NumberSettingController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductController;
@@ -33,13 +34,20 @@ Route::middleware('guest')->group(function () {
     Route::post('quotations/{quotation}/approve', [QuotationController::class, 'approve'])->name('quotations.approve');
     Route::post('quotations/{quotation}/reject', [QuotationController::class, 'reject'])->name('quotations.reject');
     Route::post('quotations/{quotation}/duplicate', [QuotationController::class, 'duplicate'])->name('quotations.duplicate');
+    Route::get('quotations/{quotation}/download', [QuotationController::class, 'download'])->name('quotations.download');
+    Route::post('quotations/{quotation}/mark-sent', [QuotationController::class, 'markSent'])->name('quotations.mark-sent');
+
 
     Route::get('ajax/last-price', [QuotationController::class, 'lastPrice'])->name('quotations.last-price');
 
     // Invoices
     Route::get('invoices/{invoice}', [InvoiceController::class, 'show'])->name('invoices.show');
     Route::get('invoices/{invoice}/download', [InvoiceController::class, 'download'])->name('invoices.download');
-
+    Route::post('invoices/{invoice}/mark-sent', [InvoiceController::class, 'markSent'])->name('invoices.mark-sent');
+    Route::post('invoices/{invoice}/delivery-challan', [DeliveryChallanController::class, 'store'])->name('delivery-challans.store');
+    Route::get('delivery-challans/{deliveryChallan}', [DeliveryChallanController::class, 'show'])->name('delivery-challans.show');
+    Route::get('delivery-challans/{deliveryChallan}/download', [DeliveryChallanController::class, 'download'])->name('delivery-challans.download');
+    
     // Payment collection against a specific invoice
     Route::post('invoices/{invoice}/payments', [PaymentController::class, 'store'])->name('payments.store');
     Route::delete('payments/{payment}', [PaymentController::class, 'destroy'])->name('payments.destroy');

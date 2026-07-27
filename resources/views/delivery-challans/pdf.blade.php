@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="UTF-8">
+	<title>{{ $deliveryChallan->challan_number }}</title>
+	<style>
+		{
+			! ! file_get_contents(public_path('css/invoice-pdf.css')) ! !
+		}
+	</style>
+</head>
+
+<body>
+	<div class="invoice-box">@php($invoice=$deliveryChallan->invoice)
+		<div class="invoice-header">
+			<div class="left">
+				<div class="company-name">{{ config('app.name') }}</div>
+			</div>
+			<div class="right">
+				<div class="invoice-title">DELIVERY CHALLAN</div>{{ $deliveryChallan->challan_number }}
+			</div>
+		</div>
+		<table class="meta-table">
+			<tr>
+				<td class="label">Deliver To</td>
+				<td><strong>{{ $invoice->customer->name }}</strong><br>{{ $invoice->shipping_address }}<br>{{
+					$invoice->shipping_address_line_2 }}<br>{{ $invoice->shipping_city }}, {{ $invoice->shipping_state
+					}} - {{ $invoice->shipping_pincode }}</td>
+				<td class="label">Date</td>
+				<td>{{ $deliveryChallan->challan_date->format('d M Y') }}<br>Invoice: {{ $invoice->invoice_number }}
+				</td>
+			</tr>
+		</table>
+		<table class="items">
+			<thead>
+				<tr>
+					<th>#</th>
+					<th>Product / Description</th>
+					<th>HSN</th>
+					<th>Size (Mtr)</th>
+					<th>Rolls</th>
+					<th>Total Mtr</th>
+				</tr>
+			</thead>
+			<tbody>@foreach($invoice->quotation->items as $i=>$item)<tr>
+					<td>{{ $i+1 }}</td>
+					<td>{{ $item->product->name }}<br><small>{{ $item->product->description }}</small></td>
+					<td>{{ $item->product->hsn_code }}</td>
+					<td>{{ number_format($item->size_mtr,2) }}</td>
+					<td>{{ $item->no_of_rolls }}</td>
+					<td>{{ number_format($item->total_mtr,2) }}</td>
+				</tr>@endforeach</tbody>
+		</table>
+	</div>
+</body>
+
+</html>

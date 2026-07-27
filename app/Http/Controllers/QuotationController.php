@@ -12,6 +12,7 @@ use App\Models\QuotationItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class QuotationController extends Controller
 {
@@ -65,6 +66,7 @@ class QuotationController extends Controller
                 'status' => 'draft',
                 'gst_applicable' => $data['gst_applicable'] ?? false,
                 'discount_amount' => $data['discount_amount'] ?? 0,
+                ...$this->shippingData($data),
             ]);
 
             $this->syncItems($quotation, $data['items']);
@@ -82,6 +84,19 @@ class QuotationController extends Controller
         $quotation->load(['items.product', 'customer', 'user', 'approvedBy', 'invoice']);
 
         return view('quotations.show', compact('quotation'));
+    }
+    public function download(Quotation $quotation)
+    {
+        $this->authorizeAccess($quotation);
+        $quotation->load(['items.product', 'customer', 'user']);
+        return Pdf::loadView('quotations.pdf', compact('quotation'))->setPaper('a4')->download($quotation->quotation_number . '.pdf');
+    }
+
+    public function markSent(Quotation $quotation)
+    {
+        $this->authorizeAccess($quotation);
+        $quotation->update(['document_status' => 'quotation_sent']);
+        return back()->with('success', 'Quotation marked as sent.');
     }
 
     public function edit(Quotation $quotation)
@@ -122,6 +137,7 @@ class QuotationController extends Controller
                 'quotation_date' => $data['quotation_date'],
                 'gst_applicable' => $data['gst_applicable'] ?? false,
                 'discount_amount' => $data['discount_amount'] ?? 0,
+                ...$this->shippingData($data),
             ]);
 
             $quotation->items()->delete();
@@ -165,6 +181,7 @@ class QuotationController extends Controller
             $quotation->update([
                 'status' => 'approved',
                 'approved_by' => Auth::id(),
+                'document_status' => 'quotation_sent',
                 'approved_at' => now(),
             ]);
 
@@ -178,6 +195,15 @@ class QuotationController extends Controller
                 'discount_amount' => $quotation->discount_amount,
                 'round_off' => $quotation->round_off,
                 'total_amount' => $quotation->total_amount,
+                'shipping_address' => $quotation->shipping_address,
+                'shipping_address_line_2' => $quotation->shipping_address_line_2,
+                'shipping_state' => $quotation->shipping_state,
+                'shipping_city' => $quotation->shipping_city,
+                'shipping_pincode' => $quotation->shipping_pincode,
+                'cgst_amount' => $quotation->cgst_amount,
+                'sgst_amount' => $quotation->sgst_amount,
+                'igst_amount' => $quotation->igst_amount,
+                'document_status' => 'invoice_ready',
             ]);
 
             $customer = $quotation->customer;
@@ -332,6 +358,12 @@ class QuotationController extends Controller
             'quotation_date' => ['required', 'date'],
             'gst_applicable' => ['nullable', 'boolean'],
             'discount_amount' => ['nullable', 'numeric', 'min:0'],
+            'shipping_address_different' => ['nullable', 'boolean'],
+            'shipping_address' => ['required', 'string', 'max:2000'],
+            'shipping_address_line_2' => ['nullable', 'string', 'max:2000'],
+            'shipping_state' => ['required', 'string', 'in:' . implode(',', config('states'))],
+            'shipping_city' => ['required', 'string', 'max:100'],
+            'shipping_pincode' => ['required', 'digits:6'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'exists:products,id'],
             'items.*.despatch_to' => ['nullable', 'string', 'max:255'],
@@ -339,5 +371,16 @@ class QuotationController extends Controller
             'items.*.no_of_rolls' => ['required', 'integer', 'min:1'],
             'items.*.price_per_mtr' => ['required', 'numeric', 'min:0'],
         ]);
+    }
+    private function shippingData(array $data): array
+    {
+        return [
+            'shipping_address_different' => (bool) ($data['shipping_address_different'] ?? false),
+            'shipping_address' => $data['shipping_address'],
+            'shipping_address_line_2' => $data['shipping_address_line_2'] ?? null,
+            'shipping_state' => $data['shipping_state'],
+            'shipping_city' => $data['shipping_city'],
+            'shipping_pincode' => $data['shipping_pincode'],
+        ];
     }
 }

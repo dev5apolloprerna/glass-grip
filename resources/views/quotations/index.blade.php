@@ -18,7 +18,7 @@
                     <label>Status</label>
                     <select name="status" class="form-control">
                         <option value="">All</option>
-                        <option value="draft" {{ $status === 'draft' ? 'selected' : '' }}>Draft</option>
+                        <option value="draft" {{ $status === 'draft' ? 'selected' : '' }}>Quotation Ready</option>
                         <option value="approved" {{ $status === 'approved' ? 'selected' : '' }}>Approved</option>
                         <option value="rejected" {{ $status === 'rejected' ? 'selected' : '' }}>Rejected</option>
                     </select>

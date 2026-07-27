@@ -11,7 +11,7 @@ class InvoiceController extends Controller
     public function show(Invoice $invoice)
     {
         $this->authorizeAccess($invoice);
-        $invoice->load(['customer', 'quotation.items.product', 'quotation.user', 'payments.enteredBy']);
+        $invoice->load(['customer', 'quotation.items.product', 'quotation.user', 'payments.enteredBy', 'deliveryChallan']);
 
         $totalPaid = $invoice->totalPaid();
         $balanceDue = $invoice->balanceDue();
@@ -28,6 +28,13 @@ class InvoiceController extends Controller
 
         return $pdf->download($invoice->invoice_number . '.pdf');
     }
+        public function markSent(Invoice $invoice)
+    {
+        $this->authorizeAccess($invoice);
+        $invoice->update(['document_status' => 'invoice_sent']);
+        return back()->with('success', 'Invoice marked as sent.');
+    }
+
 
     private function authorizeAccess(Invoice $invoice): void
     {

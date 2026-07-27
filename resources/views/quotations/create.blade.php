@@ -18,7 +18,7 @@
                         <select class="form-control" id="customer_id" name="customer_id" required>
                             <option value="">Select customer</option>
                             @foreach($customers as $customer)
-                                <option value="{{ $customer->id }}" {{ old('customer_id') == $customer->id ? 'selected' : '' }}>{{ $customer->name }}</option>
+                                <option data-address="{{ $customer->address }}" data-address_line_2="{{ $customer->address_line_2 }}" data-state="{{ $customer->state }}" data-city="{{ $customer->city }}" data-pincode="{{ $customer->pincode }}" value="{{ $customer->id }}" {{ old('customer_id') == $customer->id ? 'selected' : '' }}>{{ $customer->name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -27,7 +27,7 @@
                         <input type="date" class="form-control" id="quotation_date" name="quotation_date" value="{{ old('quotation_date', now()->toDateString()) }}" required>
                     </div>
                 </div>
-
+                @include('quotations._shipping', ['quotation' => $quotation ?? null])
                 <div class="card" style="box-shadow:none; border:1px solid var(--color-border); margin-top:10px;">
                     <div class="card-header">
                         <h3>Products</h3>
@@ -66,7 +66,7 @@
                 </div>
 
                 <div style="margin-top:20px;">
-                    <button type="submit" class="btn btn-primary">Save as Draft</button>
+                    <button type="submit" class="btn btn-primary">Save Quotation Ready</button>
                     <span class="form-hint">You can edit this quotation and add/remove products until it's approved.</span>
                 </div>
             </form>

@@ -7,7 +7,7 @@
         <div class="card-header">
             <h3>Invoice {{ $invoice->invoice_number }}</h3>
             <div>
-                <a href="{{ route('invoices.download', $invoice) }}" class="btn btn-primary btn-sm">Download PDF</a>
+                <a href="{{ route('invoices.download', $invoice) }}" class="btn btn-primary btn-sm">Download PDF</a> @if($invoice->document_status !== 'invoice_sent')<form method="POST" action="{{ route('invoices.mark-sent',$invoice) }}" style="display:inline">@csrf<button class="btn btn-success btn-sm">Mark Invoice Sent</button></form>@endif @if($invoice->deliveryChallan)<a class="btn btn-secondary btn-sm" href="{{ route('delivery-challans.show',$invoice->deliveryChallan) }}">Delivery Challan</a>@else<form method="POST" action="{{ route('delivery-challans.store',$invoice) }}" style="display:inline">@csrf<button class="btn btn-secondary btn-sm">Create Delivery Challan</button></form>@endif
                 <a href="{{ route('quotations.show', $invoice->quotation) }}" class="btn btn-secondary btn-sm">&larr; Back to Quotation</a>
             </div>
         </div>
@@ -48,7 +48,7 @@
                 <thead>
                     <tr>
                         <th>Product</th>
-                        <th>Despatch To</th>
+                        <!-- <th>Despatch To</th> -->
                         <th class="text-right">Size (Mtr)</th>
                         <th class="text-right"># Rolls</th>
                         <th class="text-right">Total Mtr</th>
@@ -59,8 +59,9 @@
                 <tbody>
                     @foreach($invoice->quotation->items as $item)
                         <tr>
-                            <td>{{ $item->product->name }}</td>
-                            <td>{{ $item->despatch_to ?: '-' }}</td>
+<!--                             <td>{{ $item->product->name }}</td>
+                            <td>{{ $item->despatch_to ?: '-' }}</td> -->
+                            <td>{{ $item->product->name }}<br><small>HSN: {{ $item->product->hsn_code }} · {{ $item->product->description }}</small></td>
                             <td class="text-right">{{ number_format($item->size_mtr, 2) }}</td>
                             <td class="text-right">{{ $item->no_of_rolls }}</td>
                             <td class="text-right">{{ number_format($item->total_mtr, 2) }}</td>
@@ -78,7 +79,7 @@
                     <div class="row"><span>Total Amount</span><span>&#8377;{{ number_format($invoice->sub_total - $invoice->discount_amount, 2) }}</span></div>
                 @endif
                 @if($invoice->gst_amount > 0)
-                    <div class="row"><span>GST (18%)</span><span>&#8377;{{ number_format($invoice->gst_amount, 2) }}</span></div>
+                    @if($invoice->cgst_amount > 0)<div class="row"><span>CGST (9%)</span><span>&#8377;{{ number_format($invoice->cgst_amount,2) }}</span></div><div class="row"><span>SGST (9%)</span><span>&#8377;{{ number_format($invoice->sgst_amount,2) }}</span></div>@else<div class="row"><span>IGST (18%)</span><span>&#8377;{{ number_format($invoice->igst_amount,2) }}</span></div>@endif
                 @endif
                 @if($invoice->round_off != 0)
                     <div class="row"><span>Round Off</span><span>{{ $invoice->round_off > 0 ? '+' : '' }}&#8377;{{ number_format($invoice->round_off, 2) }}</span></div>

@@ -18,7 +18,7 @@
     </div>
     <div class="form-group">
         <label for="hsn_code">HSN Code</label>
-        <input type="text" class="form-control" id="hsn_code" name="hsn_code" value="{{ old('hsn_code', $p->hsn_code ?? '') }}">
+        <input type="text" class="form-control" id="hsn_code" name="hsn_code" inputmode="numeric" pattern="[0-9]{5,6}" minlength="5" maxlength="6" value="{{ old('hsn_code', $p->hsn_code ?? '') }}" required>
     </div>
     <div class="form-group">
         <label for="status">Status *</label>

@@ -19,6 +19,8 @@ class Invoice extends Model
         'discount_amount',
         'round_off',
         'total_amount',
+        'shipping_address', 'shipping_address_line_2', 'shipping_state', 'shipping_city', 'shipping_pincode',
+        'cgst_amount', 'sgst_amount', 'igst_amount', 'document_status',
     ];
 
     protected function casts(): array
@@ -27,6 +29,7 @@ class Invoice extends Model
             'invoice_date' => 'date',
             'sub_total' => 'decimal:2',
             'gst_amount' => 'decimal:2',
+            'cgst_amount' => 'decimal:2', 'sgst_amount' => 'decimal:2', 'igst_amount' => 'decimal:2',
             'discount_amount' => 'decimal:2',
             'round_off' => 'decimal:2',
             'total_amount' => 'decimal:2',
@@ -47,6 +50,8 @@ class Invoice extends Model
     {
         return $this->hasMany(Payment::class);
     }
+    
+    public function deliveryChallan() { return $this->hasOne(DeliveryChallan::class); }
 
     public function totalPaid(): float
     {
