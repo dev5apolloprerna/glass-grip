@@ -49,6 +49,13 @@ class QuotationController extends Controller
     {
         $data = $this->validateData($request);
 
+        $subTotal = $this->calculateItemsSubTotal($data['items']);
+        if ((float) ($data['discount_amount'] ?? 0) > $subTotal) {
+            return back()->withErrors([
+                'discount_amount' => 'Discount amount cannot be greater than the Sub Total (₹' . number_format($subTotal, 2) . ').',
+            ])->withInput();
+        }
+
         $quotation = DB::transaction(function () use ($data) {
             $quotation = Quotation::create([
                 'quotation_number' => NumberSetting::generateNext('quotation'),
@@ -101,6 +108,13 @@ class QuotationController extends Controller
         }
 
         $data = $this->validateData($request);
+
+        $subTotal = $this->calculateItemsSubTotal($data['items']);
+        if ((float) ($data['discount_amount'] ?? 0) > $subTotal) {
+            return back()->withErrors([
+                'discount_amount' => 'Discount amount cannot be greater than the Sub Total (₹' . number_format($subTotal, 2) . ').',
+            ])->withInput();
+        }
 
         DB::transaction(function () use ($quotation, $data) {
             $quotation->update([
@@ -183,7 +197,7 @@ class QuotationController extends Controller
 
         return redirect()->route('quotations.show', $quotation)->with('success', 'Quotation approved and invoice generated.');
     }
-     public function reject(Quotation $quotation)
+ public function reject(Quotation $quotation)
     {
         $this->authorizeAccess($quotation);
 
@@ -195,7 +209,6 @@ class QuotationController extends Controller
 
         return redirect()->route('quotations.show', $quotation)->with('success', 'Quotation rejected successfully.');
     }
-
     /**
      * Create a new draft quotation copied from this one (same customer, GST setting, and line items).
      */
@@ -270,6 +283,24 @@ class QuotationController extends Controller
         if (! $user->isSuperAdmin() && $quotation->user_id !== $user->id) {
             abort(403, 'You do not have permission to access this quotation.');
         }
+    }
+
+    /**
+     * Compute the gross sub total (before discount) from the raw submitted items array.
+     * Used to validate that discount_amount never exceeds the sub total.
+     */
+    private function calculateItemsSubTotal(array $items): float
+    {
+        $subTotal = 0.0;
+
+        foreach ($items as $item) {
+            $sizeMtr = (float) ($item['size_mtr'] ?? 0);
+            $noOfRolls = (int) ($item['no_of_rolls'] ?? 0);
+            $pricePerMtr = (float) ($item['price_per_mtr'] ?? 0);
+            $subTotal += $sizeMtr * $noOfRolls * $pricePerMtr;
+        }
+
+        return $subTotal;
     }
 
     private function syncItems(Quotation $quotation, array $items): void

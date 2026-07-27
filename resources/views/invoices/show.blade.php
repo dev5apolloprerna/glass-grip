@@ -73,16 +73,17 @@
 
             <div class="totals-box">
                 <div class="row"><span>Sub Total</span><span>&#8377;{{ number_format($invoice->sub_total, 2) }}</span></div>
-                @if($invoice->gst_amount > 0)
-                    <div class="row"><span>GST (18%)</span><span>&#8377;{{ number_format($invoice->gst_amount, 2) }}</span></div>
-                @endif
                 @if($invoice->discount_amount > 0)
                     <div class="row"><span>Discount</span><span>-&#8377;{{ number_format($invoice->discount_amount, 2) }}</span></div>
+                    <div class="row"><span>Total Amount</span><span>&#8377;{{ number_format($invoice->sub_total - $invoice->discount_amount, 2) }}</span></div>
+                @endif
+                @if($invoice->gst_amount > 0)
+                    <div class="row"><span>GST (18%)</span><span>&#8377;{{ number_format($invoice->gst_amount, 2) }}</span></div>
                 @endif
                 @if($invoice->round_off != 0)
                     <div class="row"><span>Round Off</span><span>{{ $invoice->round_off > 0 ? '+' : '' }}&#8377;{{ number_format($invoice->round_off, 2) }}</span></div>
                 @endif
-                <div class="row grand"><span>Total</span><span>&#8377;{{ number_format($invoice->total_amount, 2) }}</span></div>
+                <div class="row grand"><span>Net Amount</span><span>&#8377;{{ number_format($invoice->total_amount, 2) }}</span></div>
                 <div class="row"><span>Amount Received</span><span class="text-success">&#8377;{{ number_format($totalPaid, 2) }}</span></div>
                 <div class="row"><span>Balance Due</span><span class="{{ $balanceDue > 0 ? 'text-danger' : 'text-success' }}">&#8377;{{ number_format($balanceDue, 2) }}</span></div>
             </div>
