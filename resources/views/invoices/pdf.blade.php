@@ -69,16 +69,17 @@
 
         <table class="totals">
             <tr><td>Sub Total</td><td class="text-right">Rs. {{ number_format($invoice->sub_total, 2) }}</td></tr>
-            @if($invoice->gst_amount > 0)
-                <tr><td>GST (18%)</td><td class="text-right">Rs. {{ number_format($invoice->gst_amount, 2) }}</td></tr>
-            @endif
             @if($invoice->discount_amount > 0)
                 <tr><td>Discount</td><td class="text-right">- Rs. {{ number_format($invoice->discount_amount, 2) }}</td></tr>
+                <tr><td>Total Amount</td><td class="text-right">Rs. {{ number_format($invoice->sub_total - $invoice->discount_amount, 2) }}</td></tr>
+            @endif
+            @if($invoice->gst_amount > 0)
+                <tr><td>GST (18%)</td><td class="text-right">Rs. {{ number_format($invoice->gst_amount, 2) }}</td></tr>
             @endif
             @if($invoice->round_off != 0)
                 <tr><td>Round Off</td><td class="text-right">{{ $invoice->round_off > 0 ? '+' : '' }} Rs. {{ number_format($invoice->round_off, 2) }}</td></tr>
             @endif
-            <tr class="grand"><td>Total</td><td class="text-right">Rs. {{ number_format($invoice->total_amount, 2) }}</td></tr>
+            <tr class="grand"><td>Net Amount</td><td class="text-right">Rs. {{ number_format($invoice->total_amount, 2) }}</td></tr>
         </table>
 
         <div class="footer-note">

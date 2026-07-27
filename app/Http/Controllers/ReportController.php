@@ -69,10 +69,12 @@ class ReportController extends Controller
 
         $totals = [
             'sub_total' => $invoices->sum('sub_total'),
+            'discount_amount' => $invoices->sum('discount_amount'),
             'gst_amount' => $invoices->sum('gst_amount'),
             'total_amount' => $invoices->sum('total_amount'),
             'count' => $invoices->count(),
         ];
+        $totals['pre_gst_total'] = $totals['sub_total'] - $totals['discount_amount'];
 
         return view('reports.sales', compact('invoices', 'totals', 'customers', 'fromDate', 'toDate', 'customerId'));
     }

@@ -26,17 +26,6 @@
                         <label for="quotation_date">Quotation Date *</label>
                         <input type="date" class="form-control" id="quotation_date" name="quotation_date" value="{{ old('quotation_date', now()->toDateString()) }}" required>
                     </div>
-                    <div class="form-group">
-                        <label>GST</label>
-                        <div class="checkbox-row" style="margin-top:10px;">
-                            <input type="checkbox" id="gst_applicable" name="gst_applicable" value="1" {{ old('gst_applicable') ? 'checked' : '' }}>
-                            <label for="gst_applicable" style="margin:0; font-weight:400;">Apply GST @ 18%</label>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="discount_amount">Discount Amount (&#8377;) <span class="text-muted" style="font-weight:400;">(optional)</span></label>
-                        <input type="number" step="0.01" min="0" class="form-control" id="discount_amount" name="discount_amount" value="{{ old('discount_amount', 0) }}">
-                    </div>
                 </div>
 
                 <div class="card" style="box-shadow:none; border:1px solid var(--color-border); margin-top:10px;">
@@ -49,11 +38,29 @@
 
                         <div class="totals-box">
                             <div class="row"><span>Sub Total</span><span>&#8377;<span id="summarySubTotal">0.00</span></span></div>
-                            <div class="row" id="summaryDiscountRow" style="display:none;"><span>Discount</span><span>-&#8377;<span id="summaryDiscountAmount">0.00</span></span></div>
-                            <div class="row" id="summaryGstRow" style="display:none;"><span>GST (18%)</span><span>&#8377;<span id="summaryGstAmount">0.00</span></span></div>
-                            
+                            <div class="row">
+                                <span>Discount (&#8377;)</span>
+                                <span>
+                                    <input type="number" step="0.01" min="0" id="discount_amount" name="discount_amount" class="form-control" style="width:130px; text-align:right; display:inline-block; padding:5px 10px;" value="{{ old('discount_amount', 0) }}" placeholder="0">
+                                </span>
+                            </div>
+                            <div id="discountErrorHint" class="form-error" style="display:none; text-align:right; margin-top:-4px; margin-bottom:6px;">Discount cannot be greater than the Sub Total.</div>
+                            <div class="row" id="summaryNetAmountRow" style="display:none;"><span>Total Amount</span><span>&#8377;<span id="summaryNetAmount">0.00</span></span></div>
+                            <div class="row">
+                                <span>
+                                    GST (18%)
+                                    <label style="font-weight:400; margin-left:14px;">
+                                        <input type="checkbox" id="gst_yes" {{ old('gst_applicable') ? 'checked' : '' }}> Yes
+                                    </label>
+                                    <label style="font-weight:400; margin-left:10px;">
+                                        <input type="checkbox" id="gst_no" {{ old('gst_applicable') ? '' : 'checked' }}> No
+                                    </label>
+                                    <input type="hidden" name="gst_applicable" id="gst_applicable_hidden" value="{{ old('gst_applicable') ? '1' : '0' }}">
+                                </span>
+                                <span id="summaryGstRow" style="display:none;">&#8377;<span id="summaryGstAmount">0.00</span></span>
+                            </div>
                             <div class="row"><span>Round Off</span><span id="summaryRoundOff">&#8377;0.00</span></div>
-                            <div class="row grand"><span>Total</span><span>&#8377;<span id="summaryTotal">0.00</span></span></div>
+                            <div class="row grand"><span>Net Amount</span><span>&#8377;<span id="summaryTotal">0.00</span></span></div>
                         </div>
                     </div>
                 </div>

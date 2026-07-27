@@ -114,19 +114,19 @@
                 </tbody>
             </table>
 
-           <div class="totals-box">
+            <div class="totals-box">
                 <div class="row"><span>Sub Total</span><span>&#8377;{{ number_format($quotation->sub_total, 2) }}</span></div>
                 @if($quotation->discount_amount > 0)
                     <div class="row"><span>Discount</span><span>-&#8377;{{ number_format($quotation->discount_amount, 2) }}</span></div>
+                    <div class="row"><span>Total Amount</span><span>&#8377;{{ number_format($quotation->sub_total - $quotation->discount_amount, 2) }}</span></div>
                 @endif
                 @if($quotation->gst_applicable)
                     <div class="row"><span>GST (18%)</span><span>&#8377;{{ number_format($quotation->gst_amount, 2) }}</span></div>
                 @endif
-               
                 @if($quotation->round_off != 0)
                     <div class="row"><span>Round Off</span><span>{{ $quotation->round_off > 0 ? '+' : '' }}&#8377;{{ number_format($quotation->round_off, 2) }}</span></div>
                 @endif
-                <div class="row grand"><span>Total</span><span>&#8377;{{ number_format($quotation->total_amount, 2) }}</span></div>
+                <div class="row grand"><span>Net Amount</span><span>&#8377;{{ number_format($quotation->total_amount, 2) }}</span></div>
             </div>
         </div>
     </div>

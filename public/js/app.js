@@ -35,9 +35,22 @@ function initQuotationBuilder() {
   var addBtn = document.getElementById('addItemBtn');
   var template = document.getElementById('itemRowTemplate');
   var customerSelect = document.getElementById('customer_id');
-  var gstCheckbox = document.getElementById('gst_applicable');
+  var gstYesCheckbox = document.getElementById('gst_yes');
+  var gstNoCheckbox = document.getElementById('gst_no');
+  var gstHiddenInput = document.getElementById('gst_applicable_hidden');
   var discountInput = document.getElementById('discount_amount');
+  var discountErrorHint = document.getElementById('discountErrorHint');
   var rowIndex = parseInt(container.getAttribute('data-next-index'), 10) || 0;
+
+  function isGstApplicable() {
+    return !!(gstHiddenInput && gstHiddenInput.value === '1');
+  }
+
+  function setGstApplicable(applicable) {
+    if (gstYesCheckbox) gstYesCheckbox.checked = applicable;
+    if (gstNoCheckbox) gstNoCheckbox.checked = !applicable;
+    if (gstHiddenInput) gstHiddenInput.value = applicable ? '1' : '0';
+  }
 
   function bindRow(row) {
     var productSelect = row.querySelector('.js-product');
@@ -130,8 +143,17 @@ function initQuotationBuilder() {
       subTotal += size * rolls * price;
     });
 
-    var gstApplicable = gstCheckbox && gstCheckbox.checked;
+    var gstApplicable = isGstApplicable();
     var discount = discountInput ? (parseFloat(discountInput.value) || 0) : 0;
+
+    // Discount cannot exceed the sub total - clamp it and show a hint.
+    var discountExceeds = discount > subTotal;
+    if (discountExceeds && discountInput) {
+      discount = subTotal;
+      discountInput.value = subTotal.toFixed(2);
+    }
+    if (discountErrorHint) discountErrorHint.style.display = discountExceeds ? 'block' : 'none';
+
     var discountedSubTotal = subTotal - discount;
     var gstAmount = gstApplicable ? discountedSubTotal * 0.18 : 0;
 
@@ -140,16 +162,16 @@ function initQuotationBuilder() {
     var roundOff = roundedTotal - beforeRounding;
 
     setText('summarySubTotal', formatMoney(subTotal));
+    setText('summaryNetAmount', formatMoney(discountedSubTotal));
     setText('summaryGstAmount', formatMoney(gstAmount));
-    setText('summaryDiscountAmount', formatMoney(discount));
     setText('summaryRoundOff', (roundOff >= 0 ? '+' : '-') + '\u20b9' + formatMoney(Math.abs(roundOff)));
     setText('summaryTotal', formatMoney(roundedTotal));
 
     var gstRow = document.getElementById('summaryGstRow');
-    if (gstRow) gstRow.style.display = gstApplicable ? 'flex' : 'none';
+    if (gstRow) gstRow.style.display = gstApplicable ? 'inline' : 'none';
 
-    var discountRow = document.getElementById('summaryDiscountRow');
-    if (discountRow) discountRow.style.display = discount > 0 ? 'flex' : 'none';
+    var netAmountRow = document.getElementById('summaryNetAmountRow');
+    if (netAmountRow) netAmountRow.style.display = discount > 0 ? 'flex' : 'none';
   }
 
   function setText(id, text) {
@@ -164,7 +186,19 @@ function initQuotationBuilder() {
   // Bind existing rows (edit mode) and wire up add button / gst toggle.
   container.querySelectorAll('.item-row').forEach(bindRow);
   addBtn.addEventListener('click', addRow);
-  if (gstCheckbox) gstCheckbox.addEventListener('change', recalcTotals);
+
+  if (gstYesCheckbox) {
+    gstYesCheckbox.addEventListener('change', function () {
+      setGstApplicable(gstYesCheckbox.checked);
+      recalcTotals();
+    });
+  }
+  if (gstNoCheckbox) {
+    gstNoCheckbox.addEventListener('change', function () {
+      setGstApplicable(!gstNoCheckbox.checked);
+      recalcTotals();
+    });
+  }
   if (discountInput) discountInput.addEventListener('input', recalcTotals);
 
   // If creating fresh, start with one row.
