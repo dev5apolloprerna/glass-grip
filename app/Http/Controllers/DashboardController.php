@@ -22,7 +22,8 @@ class DashboardController extends Controller
         $stats = [
             'total_customers' => Customer::count(),
             'total_products' => Product::count(),
-            'draft_quotations' => (clone $quotationQuery)->where('status', 'draft')->count(),
+            'draft_quotations' => (clone $quotationQuery)->where('status', 'draft')->where('document_status', '!=', 'quotation_sent')->count(),
+            'sent_quotations' => (clone $quotationQuery)->where('status', 'draft')->where('document_status', 'quotation_sent')->count(),
             'approved_quotations' => (clone $quotationQuery)->where('status', 'approved')->count(),
             'total_invoiced' => Invoice::sum('total_amount'),
         ];

@@ -345,6 +345,7 @@ table.table td.wrap { white-space: normal; }
   letter-spacing: 0.03em;
 }
 .pill-draft { background: #fef3c7; color: #92400e; }
+.pill-sent { background: #dbeafe; color: #1e40af; }
 .pill-approved { background: #dcfce7; color: #166534; }
 .pill-active { background: #dcfce7; color: #166534; }
 .pill-inactive { background: #fee2e2; color: #991b1b; }

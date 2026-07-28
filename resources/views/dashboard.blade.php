@@ -19,6 +19,10 @@
             <div class="value">{{ $stats['draft_quotations'] }}</div>
         </div>
         <div class="stat-card">
+            <div class="label">Quotations Sent</div>
+            <div class="value">{{ $stats['sent_quotations'] }}</div>
+        </div>
+        <div class="stat-card">
             <div class="label">Approved Quotations</div>
             <div class="value">{{ $stats['approved_quotations'] }}</div>
         </div>
@@ -51,7 +55,7 @@
                             <td>{{ $q->quotation_number }}</td>
                             <td>{{ $q->customer->name }}</td>
                             <td>{{ $q->quotation_date->format('d M Y') }}</td>
-                            <td><span class="pill pill-{{ $q->status }}">{{ $q->status === 'draft' ? 'Quotation Created' : ucfirst($q->status) }}</span></td>
+                            <td><span class="pill pill-{{ $q->displayStatusClass() }}">{{ $q->displayStatus() }}</span></td>
                             <td>{{ $q->user->name }}</td>
                             <td class="text-right">&#8377;{{ number_format($q->total_amount, 2) }}</td>
                         </tr>

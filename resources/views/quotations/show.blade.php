@@ -5,10 +5,21 @@
 @section('content')
     <div class="card">
         <div class="card-header">
-            <h3>{{ $quotation->quotation_number }} <span class="pill pill-{{ $quotation->status }}">{{ $quotation->status === 'draft' ? 'Quotation Created' : ucfirst(str_replace('_', ' ', $quotation->document_status ?: $quotation->status)) }}</span></h3>
+            <h3>{{ $quotation->quotation_number }} <span class="pill pill-{{ $quotation->displayStatusClass() }}">{{ $quotation->displayStatus() }}</span></h3>
             <div>
                 <a href="{{ route('quotations.download', $quotation) }}" class="btn btn-secondary btn-sm">Quotation PDF</a>
-                @if($quotation->isEditable())<form method="POST" action="{{ route('quotations.mark-sent',$quotation) }}" style="display:inline" data-confirm="Send and approve this quotation? An invoice will be generated and the quotation can no longer be edited.">@csrf<button class="btn btn-success btn-sm">Send &amp; Approve</button></form>@endif
+                @if($quotation->isEditable())
+                    <form method="POST" action="{{ route('quotations.mark-sent', $quotation) }}" style="display:inline" data-confirm="Mark this quotation as sent? It can no longer be edited.">
+                        @csrf
+                        <button class="btn btn-success btn-sm">Send Quotation</button>
+                    </form>
+                @elseif($quotation->isSent())
+                    <form method="POST" action="{{ route('quotations.approve', $quotation) }}" style="display:inline-flex; gap:6px; align-items:center;" data-confirm="Approve this quotation and create the invoice with the entered number?">
+                        @csrf
+                        <input type="text" name="invoice_number" class="form-control" value="{{ old('invoice_number') }}" placeholder="Enter invoice number" maxlength="255" required style="width:190px; padding:5px 10px;">
+                        <button class="btn btn-success btn-sm">Approve &amp; Create Invoice</button>
+                    </form>
+                @endif
                 @if($quotation->isEditable())
                     <a href="{{ route('quotations.edit', $quotation) }}" class="btn btn-secondary btn-sm">Edit</a>
 
