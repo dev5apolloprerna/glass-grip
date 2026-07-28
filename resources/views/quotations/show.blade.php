@@ -5,7 +5,7 @@
 @section('content')
     <div class="card">
         <div class="card-header">
-            <h3>{{ $quotation->quotation_number }} <span class="pill pill-{{ $quotation->status === 'draft' ? 'Quotation Ready' : ucfirst(str_replace('_', ' ', $quotation->document_status ?: $quotation->status)) }}">{{ $quotation->status === 'draft' ? 'Quotation Ready' : ucfirst(str_replace('_', ' ', $quotation->document_status ?: $quotation->status)) }}</span></h3>
+            <h3>{{ $quotation->quotation_number }} <span class="pill pill-{{ $quotation->status }}">{{ $quotation->status === 'draft' ? 'Quotation Created' : ucfirst(str_replace('_', ' ', $quotation->document_status ?: $quotation->status)) }}</span></h3>
             <div>
                 <a href="{{ route('quotations.download', $quotation) }}" class="btn btn-secondary btn-sm">Quotation PDF</a>
                 @if($quotation->isEditable())<form method="POST" action="{{ route('quotations.mark-sent',$quotation) }}" style="display:inline" data-confirm="Send and approve this quotation? An invoice will be generated and the quotation can no longer be edited.">@csrf<button class="btn btn-success btn-sm">Send &amp; Approve</button></form>@endif
@@ -37,7 +37,7 @@
                         <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                     </form>
                 @endif
-                <form method="POST" action="{{ route('quotations.duplicate', $quotation) }}" style="display:inline;" data-confirm="Create a new draft quotation copied from this one?">
+                <form method="POST" action="{{ route('quotations.duplicate', $quotation) }}" style="display:inline;" data-confirm="Create a new quotation copied from this one?">
                     @csrf
                     <button type="submit" class="btn btn-secondary btn-sm">Copy</button>
                 </form>
@@ -77,6 +77,7 @@
                         <p class="text-muted mb-0">Invoice Number</p>
                         <p>{{ $quotation->invoice->invoice_number ?? '-' }}</p>
                     </div>
+                    <div aria-hidden="true"></div>
                 </div>
             @endif
         </div>

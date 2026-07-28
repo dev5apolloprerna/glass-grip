@@ -3,8 +3,8 @@
  <div class="card-header"><h3>Shipping Address</h3><label><input type="checkbox" name="shipping_address_different" id="shippingDifferent" value="1" {{ old('shipping_address_different', $q->shipping_address_different ?? false) ? 'checked' : '' }}> Different from customer address</label></div>
  <div class="card-body">
   <div class="form-row">
-   <div class="form-group"><label>Address *</label><textarea class="form-control" name="shipping_address" id="shipping_address" required>{{ old('shipping_address', $q->shipping_address ?? '') }}</textarea></div>
-   <div class="form-group"><label>Address Line 2</label><textarea class="form-control" name="shipping_address_line_2" id="shipping_address_line_2">{{ old('shipping_address_line_2', $q->shipping_address_line_2 ?? '') }}</textarea></div>
+   <div class="form-group"><label>Address *</label><input type="text" class="form-control" name="shipping_address" id="shipping_address" value="{{ old('shipping_address', $q->shipping_address ?? '') }}" required></div>
+   <div class="form-group"><label>Address Line 2</label><input type="text" class="form-control" name="shipping_address_line_2" id="shipping_address_line_2" value="{{ old('shipping_address_line_2', $q->shipping_address_line_2 ?? '') }}"></div>
   </div>
   <div class="form-row">
    <div class="form-group"><label>State *</label><select class="form-control" name="shipping_state" id="shipping_state" required><option value="">Select state</option>@foreach(config('states') as $state)<option value="{{ $state }}" {{ old('shipping_state', $q->shipping_state ?? '') === $state ? 'selected' : '' }}>{{ $state }}</option>@endforeach</select></div>

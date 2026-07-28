@@ -35,8 +35,8 @@
 </div>
 
 <div class="form-row">
-    <div class="form-group"><label for="address">Address *</label><textarea class="form-control" id="address" name="address" required>{{ old('address', $c->address ?? '') }}</textarea></div>
-    <div class="form-group"><label for="address_line_2">Address Line 2</label><textarea class="form-control" id="address_line_2" name="address_line_2">{{ old('address_line_2', $c->address_line_2 ?? '') }}</textarea></div>
+    <div class="form-group"><label for="address">Address *</label><input type="text" class="form-control" id="address" name="address" value="{{ old('address', $c->address ?? '') }}" required></div>
+    <div class="form-group"><label for="address_line_2">Address Line 2</label><input type="text" class="form-control" id="address_line_2" name="address_line_2" value="{{ old('address_line_2', $c->address_line_2 ?? '') }}"></div>
 </div>
 <div class="form-row">
     <div class="form-group"><label for="state">State *</label><select class="form-control" id="state" name="state" required><option value="">Select state</option>@foreach(config('states') as $state)<option value="{{ $state }}" {{ old('state', $c->state ?? '') === $state ? 'selected' : '' }}>{{ $state }}</option>@endforeach</select></div>

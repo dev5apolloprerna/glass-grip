@@ -66,7 +66,7 @@
                 </div>
 
                 <div style="margin-top:20px;">
-                    <button type="submit" class="btn btn-primary">Save Quotation Ready</button>
+                    <button type="submit" class="btn btn-primary">Create Quotation</button>
                     <span class="form-hint">You can edit this quotation and add/remove products until it's approved.</span>
                 </div>
             </form>
