@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Customer;
 use App\Models\CustomerLedger;
+use App\Models\DeliveryChallan;
 use App\Models\Invoice;
 use App\Models\NumberSetting;
 use App\Models\Product;
@@ -213,6 +214,12 @@ class QuotationController extends Controller
                 'document_status' => 'invoice_ready',
             ]);
 
+            DeliveryChallan::create([
+                'invoice_id' => $invoice->id,
+                'challan_number' => 'DC-' . now()->format('Ymd') . '-' . str_pad((string) $invoice->id, 5, '0', STR_PAD_LEFT),
+                'challan_date' => now()->toDateString(),
+            ]);
+
             $customer = $quotation->customer;
             $newBalance = $customer->currentBalance() + (float) $quotation->total_amount;
 
@@ -235,7 +242,7 @@ class QuotationController extends Controller
         $this->authorizeAccess($quotation);
 
         if (! $quotation->isEditable()) {
-            return back()->with('error', 'Only draft quotations can be rejected.');
+            return back()->with('error', 'Only newly created quotations can be rejected.');
         }
 
         $quotation->update(['status' => 'rejected']);
@@ -280,7 +287,7 @@ class QuotationController extends Controller
         });
 
         return redirect()->route('quotations.index')
-            ->with('success', "Quotation duplicated as {$newQuotation->quotation_number} (draft). Edit it any time before approving.");
+            ->with('success', "Quotation duplicated as {$newQuotation->quotation_number} (Quotation Created). Edit it any time before sending.");
     }
 
     /**
