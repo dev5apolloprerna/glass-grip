@@ -7,7 +7,7 @@
         <div class="card-header">
             <h3>Invoice {{ $invoice->invoice_number }}</h3>
             <div>
-                <a href="{{ route('invoices.download', $invoice) }}" class="btn btn-primary btn-sm">Download PDF</a> @if($invoice->document_status !== 'invoice_sent')<form method="POST" action="{{ route('invoices.mark-sent',$invoice) }}" style="display:inline">@csrf<button class="btn btn-success btn-sm">Mark Invoice Sent</button></form>@endif @if($invoice->deliveryChallan)<a class="btn btn-secondary btn-sm" href="{{ route('delivery-challans.show',$invoice->deliveryChallan) }}">Delivery Challan</a>@else<form method="POST" action="{{ route('delivery-challans.store',$invoice) }}" style="display:inline">@csrf<button class="btn btn-secondary btn-sm">Create Delivery Challan</button></form>@endif
+                <a href="{{ route('invoices.download', $invoice) }}" class="btn btn-primary btn-sm">Download PDF</a> @if($invoice->document_status !== 'invoice_approved')<form method="POST" action="{{ route('invoices.mark-sent',$invoice) }}" style="display:inline" data-confirm="Send and approve this invoice?">@csrf<button class="btn btn-success btn-sm">Send &amp; Approve</button></form>@endif @if($invoice->deliveryChallan)<a class="btn btn-secondary btn-sm" href="{{ route('delivery-challans.show',$invoice->deliveryChallan) }}">Delivery Challan</a>@else<form method="POST" action="{{ route('delivery-challans.store',$invoice) }}" style="display:inline">@csrf<button class="btn btn-secondary btn-sm">Create Delivery Challan</button></form>@endif
                 <a href="{{ route('quotations.show', $invoice->quotation) }}" class="btn btn-secondary btn-sm">&larr; Back to Quotation</a>
             </div>
         </div>

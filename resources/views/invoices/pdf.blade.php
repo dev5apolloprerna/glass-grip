@@ -9,11 +9,11 @@
     <div class="invoice-box">
         <div class="invoice-header">
             <div class="left">
-                <div class="company-name">{{ config('app.name', 'Your Company') }}</div>
+                <div class="company-name">{{ config('app.name', 'Your Company') }}</div><div class="company-tagline">Quality products. Reliable service.</div>
             </div>
             <div class="right">
                 <div class="invoice-title">INVOICE</div>
-                <div>{{ $invoice->invoice_number }}</div>
+                <div class="document-number">{{ $invoice->invoice_number }}</div>
             </div>
         </div>
 
@@ -83,6 +83,8 @@
         <div class="footer-note">
             This is a system-generated invoice created from approved quotation {{ $invoice->quotation->quotation_number }} by {{ $invoice->quotation->user->name }}.
         </div>
+         <div class="footer-grid"><div class="footer-note">Please retain this document for your records.<br>This is a computer-generated document.</div><div class="signature"><div class="signature-space"></div><strong>Authorised Signatory</strong><br>For {{ config('app.name') }}</div></div>
+        <div class="bottom-bar">Thank you for your business</div>
     </div>
 </body>
 </html>

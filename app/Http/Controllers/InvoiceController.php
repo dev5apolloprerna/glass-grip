@@ -31,8 +31,9 @@ class InvoiceController extends Controller
         public function markSent(Invoice $invoice)
     {
         $this->authorizeAccess($invoice);
-        $invoice->update(['document_status' => 'invoice_sent']);
-        return back()->with('success', 'Invoice marked as sent.');
+        $invoice->update(['document_status' => 'invoice_approved']);
+
+        return back()->with('success', 'Invoice sent and approved.');
     }
 
 

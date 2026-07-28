@@ -4,22 +4,18 @@
 <head>
 	<meta charset="UTF-8">
 	<title>{{ $quotation->quotation_number }}</title>
-	<style>
-		{
-			! ! file_get_contents(public_path('css/invoice-pdf.css')) ! !
-		}
-	</style>
+		<style>{!! file_get_contents(public_path('css/invoice-pdf.css')) !!}</style>
 </head>
 
 <body>
 	<div class="invoice-box">
 		<div class="invoice-header">
 			<div class="left">
-				<div class="company-name">{{ config('app.name') }}</div>
+				<div class="company-name">{{ config('app.name') }}</div><div class="company-tagline">Quality products. Reliable service.</div>
 			</div>
 			<div class="right">
 				<div class="invoice-title">QUOTATION</div>
-				<div>{{ $quotation->quotation_number }}</div>
+				<div class="document-number">{{ $quotation->quotation_number }}</div>
 			</div>
 		</div>
 		<table class="meta-table">
@@ -86,6 +82,8 @@
 				<td class="text-right">Rs. {{ number_format($quotation->total_amount,2) }}</td>
 			</tr>
 		</table>
+		        <div class="footer-grid"><div class="footer-note">Please retain this document for your records.<br>This is a computer-generated document.</div><div class="signature"><div class="signature-space"></div><strong>Authorised Signatory</strong><br>For {{ config('app.name') }}</div></div>
+        <div class="bottom-bar">Thank you for your business</div>
 	</div>
 </body>
 
