@@ -19,6 +19,7 @@
                     <select name="status" class="form-control">
                         <option value="">All</option>
                         <option value="draft" {{ $status === 'draft' ? 'selected' : '' }}>Quotation Created</option>
+                        <option value="sent" {{ $status === 'sent' ? 'selected' : '' }}>Quotation Sent</option>
                         <option value="approved" {{ $status === 'approved' ? 'selected' : '' }}>Approved</option>
                         <option value="rejected" {{ $status === 'rejected' ? 'selected' : '' }}>Rejected</option>
                     </select>
@@ -48,7 +49,7 @@
                                 <td>{{ $q->quotation_number }}</td>
                                 <td>{{ $q->customer->name }}</td>
                                 <td>{{ $q->quotation_date->format('d M Y') }}</td>
-                                <td><span class="pill pill-{{ $q->status }}">{{ $q->status === 'draft' ? 'Quotation Created' : ucfirst($q->status) }}</span></td>
+                                <td><span class="pill pill-{{ $q->displayStatusClass() }}">{{ $q->displayStatus() }}</span></td>
                                 <td>{{ $q->user->name }}</td>
                                 <td class="text-right">&#8377;{{ number_format($q->total_amount, 2) }}</td>
                                 <td>

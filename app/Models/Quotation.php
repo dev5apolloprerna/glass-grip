@@ -73,7 +73,30 @@ class Quotation extends Model
 
     public function isEditable(): bool
     {
-        return $this->status === 'draft';
+        return $this->status === 'draft' && $this->document_status !== 'quotation_sent';
+    }
+
+    public function isSent(): bool
+    {
+        return $this->status === 'draft' && $this->document_status === 'quotation_sent';
+    }
+
+    public function displayStatus(): string
+    {
+        if ($this->isSent()) {
+            return 'Quotation Sent';
+        }
+
+        return match ($this->status) {
+            'draft' => 'Quotation Created',
+            'approved' => 'Quotation Approved',
+            default => ucfirst($this->status),
+        };
+    }
+
+    public function displayStatusClass(): string
+    {
+        return $this->isSent() ? 'sent' : $this->status;
     }
 
     /**

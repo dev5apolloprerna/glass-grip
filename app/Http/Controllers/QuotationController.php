@@ -31,7 +31,14 @@ class QuotationController extends Controller
                         ->orWhereHas('customer', fn ($c) => $c->where('name', 'like', "%{$search}%"));
                 });
             })
-            ->when($status, fn ($q) => $q->where('status', $status))
+            ->when($status === 'sent', fn ($q) => $q->where('status', 'draft')->where('document_status', 'quotation_sent'))
+            ->when($status && $status !== 'sent', function ($q) use ($status) {
+                $q->where('status', $status);
+
+                if ($status === 'draft') {
+                    $q->where('document_status', '!=', 'quotation_sent');
+                }
+            })
             ->latest()
             ->paginate(15)
             ->withQueryString();
@@ -96,10 +103,19 @@ class QuotationController extends Controller
     public function markSent(Quotation $quotation)
     {
         $this->authorizeAccess($quotation);
-        return $this->approveAndGenerateInvoice(
-            $quotation,
-            'Quotation sent, approved, and invoice generated.'
-        );
+
+        if (! $quotation->isEditable()) {
+            return back()->with('error', 'Only newly created quotations can be sent.');
+        }
+
+        if ($quotation->items()->count() === 0) {
+            return back()->with('error', 'Cannot send a quotation with no items.');
+        }
+
+        $quotation->update(['document_status' => 'quotation_sent']);
+
+        return redirect()->route('quotations.show', $quotation)
+            ->with('success', 'Quotation marked as sent. You can approve it when the customer accepts it.');
     }
 
     public function edit(Quotation $quotation)
@@ -156,7 +172,7 @@ class QuotationController extends Controller
         $this->authorizeAccess($quotation);
 
         if (! $quotation->isEditable()) {
-            return back()->with('error', 'Approved quotations cannot be deleted.');
+            return back()->with('error', 'Sent or approved quotations cannot be deleted.');
         }
 
         $quotation->items()->delete();
@@ -168,24 +184,29 @@ class QuotationController extends Controller
     /**
      * Approve the quotation: locks editing and generates an invoice.
      */
-    public function approve(Quotation $quotation)
+    public function approve(Request $request, Quotation $quotation)
     {
         $this->authorizeAccess($quotation);
-        return $this->approveAndGenerateInvoice($quotation, 'Quotation approved and invoice generated.');
-    }
+               $request->merge([
+            'invoice_number' => trim((string) $request->input('invoice_number')),
+        ]);
 
-    private function approveAndGenerateInvoice(Quotation $quotation, string $message)
-    {
-
-        if (! $quotation->isEditable()) {
+        if ($quotation->status === 'approved') {
             return back()->with('error', 'Quotation is already approved.');
+        }
+         if (! $quotation->isSent()) {
+            return back()->with('error', 'Send the quotation before approving it.');
         }
 
         if ($quotation->items()->count() === 0) {
             return back()->with('error', 'Cannot approve a quotation with no items.');
         }
 
-        DB::transaction(function () use ($quotation) {
+        $data = $request->validate([
+            'invoice_number' => ['required', 'string', 'max:255', 'unique:invoices,invoice_number'],
+        ]);
+
+        DB::transaction(function () use ($quotation, $data) {
             $quotation->update([
                 'status' => 'approved',
                 'approved_by' => Auth::id(),
@@ -194,7 +215,7 @@ class QuotationController extends Controller
             ]);
 
             $invoice = Invoice::create([
-                'invoice_number' => NumberSetting::generateNext('invoice'),
+                'invoice_number' => trim($data['invoice_number']),
                 'quotation_id' => $quotation->id,
                 'customer_id' => $quotation->customer_id,
                 'invoice_date' => now()->toDateString(),
@@ -235,7 +256,8 @@ class QuotationController extends Controller
             ]);
         });
 
-        return redirect()->route('quotations.show', $quotation)->with('success', $message);
+        return redirect()->route('quotations.show', $quotation)
+            ->with('success', 'Quotation approved and invoice generated.');
     }
  public function reject(Quotation $quotation)
     {
