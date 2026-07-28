@@ -8,13 +8,9 @@
             <h3>{{ $quotation->quotation_number }} <span class="pill pill-{{ $quotation->status === 'draft' ? 'Quotation Ready' : ucfirst(str_replace('_', ' ', $quotation->document_status ?: $quotation->status)) }}">{{ $quotation->status === 'draft' ? 'Quotation Ready' : ucfirst(str_replace('_', ' ', $quotation->document_status ?: $quotation->status)) }}</span></h3>
             <div>
                 <a href="{{ route('quotations.download', $quotation) }}" class="btn btn-secondary btn-sm">Quotation PDF</a>
-                @if($quotation->document_status !== 'quotation_sent')<form method="POST" action="{{ route('quotations.mark-sent',$quotation) }}" style="display:inline">@csrf<button class="btn btn-success btn-sm">Mark Quotation Sent</button></form>@endif
+                @if($quotation->isEditable())<form method="POST" action="{{ route('quotations.mark-sent',$quotation) }}" style="display:inline" data-confirm="Send and approve this quotation? An invoice will be generated and the quotation can no longer be edited.">@csrf<button class="btn btn-success btn-sm">Send &amp; Approve</button></form>@endif
                 @if($quotation->isEditable())
                     <a href="{{ route('quotations.edit', $quotation) }}" class="btn btn-secondary btn-sm">Edit</a>
-                    <form method="POST" action="{{ route('quotations.approve', $quotation) }}" style="display:inline;" data-confirm="Approve this quotation? Once approved it cannot be edited and an invoice will be generated.">
-                        @csrf
-                        <button type="submit" class="btn btn-success btn-sm">Approve &amp; Generate Invoice</button>
-                    </form>
 
                     <form method="POST" action="{{ route('quotations.reject', $quotation) }}" style="display:inline;" data-confirm="Reject this quotation?">
                         @csrf

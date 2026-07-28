@@ -4,21 +4,17 @@
 <head>
 	<meta charset="UTF-8">
 	<title>{{ $deliveryChallan->challan_number }}</title>
-	<style>
-		{
-			! ! file_get_contents(public_path('css/invoice-pdf.css')) ! !
-		}
-	</style>
+	<style>{!! file_get_contents(public_path('css/invoice-pdf.css')) !!}</style>
 </head>
 
 <body>
 	<div class="invoice-box">@php($invoice=$deliveryChallan->invoice)
 		<div class="invoice-header">
 			<div class="left">
-				<div class="company-name">{{ config('app.name') }}</div>
+				<div class="company-name">{{ config('app.name') }}</div><div class="company-tagline">Quality products. Reliable service.</div>
 			</div>
 			<div class="right">
-				<div class="invoice-title">DELIVERY CHALLAN</div>{{ $deliveryChallan->challan_number }}
+				<div class="invoice-title">DELIVERY CHALLAN</div><div class="document-number">{{ $deliveryChallan->challan_number }}</div>
 			</div>
 		</div>
 		<table class="meta-table">
@@ -52,6 +48,8 @@
 					<td>{{ number_format($item->total_mtr,2) }}</td>
 				</tr>@endforeach</tbody>
 		</table>
+		        <div class="footer-grid"><div class="footer-note">Please retain this document for your records.<br>This is a computer-generated document.</div><div class="signature"><div class="signature-space"></div><strong>Authorised Signatory</strong><br>For {{ config('app.name') }}</div></div>
+        <div class="bottom-bar">Thank you for your business</div>
 	</div>
 </body>
 

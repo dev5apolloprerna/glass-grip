@@ -95,8 +95,10 @@ class QuotationController extends Controller
     public function markSent(Quotation $quotation)
     {
         $this->authorizeAccess($quotation);
-        $quotation->update(['document_status' => 'quotation_sent']);
-        return back()->with('success', 'Quotation marked as sent.');
+        return $this->approveAndGenerateInvoice(
+            $quotation,
+            'Quotation sent, approved, and invoice generated.'
+        );
     }
 
     public function edit(Quotation $quotation)
@@ -168,6 +170,11 @@ class QuotationController extends Controller
     public function approve(Quotation $quotation)
     {
         $this->authorizeAccess($quotation);
+        return $this->approveAndGenerateInvoice($quotation, 'Quotation approved and invoice generated.');
+    }
+
+    private function approveAndGenerateInvoice(Quotation $quotation, string $message)
+    {
 
         if (! $quotation->isEditable()) {
             return back()->with('error', 'Quotation is already approved.');
@@ -221,7 +228,7 @@ class QuotationController extends Controller
             ]);
         });
 
-        return redirect()->route('quotations.show', $quotation)->with('success', 'Quotation approved and invoice generated.');
+        return redirect()->route('quotations.show', $quotation)->with('success', $message);
     }
  public function reject(Quotation $quotation)
     {
