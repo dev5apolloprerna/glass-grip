@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Customer;
 use App\Models\CustomerLedger;
-use App\Models\DeliveryChallan;
+// use App\Models\DeliveryChallan;
 use App\Models\Invoice;
 use App\Models\NumberSetting;
 use App\Models\Product;
@@ -214,8 +214,8 @@ class QuotationController extends Controller
     {
         $this->authorizeAccess($quotation);
 
-        if ($quotation->status !== 'approved') {
-            return back()->with('error', 'Approve the quotation before generating an invoice.');
+        if (! $quotation->isSent() && $quotation->status !== 'approved') {
+            return back()->with('error', 'Send the quotation before generating an invoice.');
         }
 
         if ($quotation->invoice()->exists()) {
@@ -253,12 +253,6 @@ class QuotationController extends Controller
                 'document_status' => 'invoice_ready',
             ]);
 
-            DeliveryChallan::create([
-                'invoice_id' => $invoice->id,
-                'challan_number' => 'DC-' . now()->format('Ymd') . '-' . str_pad((string) $invoice->id, 5, '0', STR_PAD_LEFT),
-                'challan_date' => now()->toDateString(),
-            ]);
-
             $customer = $quotation->customer;
             $newBalance = $customer->currentBalance() + (float) $quotation->total_amount;
 
@@ -275,7 +269,7 @@ class QuotationController extends Controller
         });
 
         return redirect()->route('quotations.show', $quotation)
-            ->with('success', 'Invoice generated successfully. You can now download the invoice PDF.');
+            ->with('success', 'Invoice generated successfully. You can now download the invoice PDF or create a delivery challan.');
      }
     public function reject(Quotation $quotation)
     {
