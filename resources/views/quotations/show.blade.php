@@ -14,10 +14,9 @@
                         <button class="btn btn-success btn-sm">Send Quotation</button>
                     </form>
                 @elseif($quotation->isSent())
-                    <form method="POST" action="{{ route('quotations.approve', $quotation) }}" style="display:inline-flex; gap:6px; align-items:center;" data-confirm="Approve this quotation and create the invoice with the entered number?">
-                        @csrf
-                        <input type="text" name="invoice_number" class="form-control" value="{{ old('invoice_number') }}" placeholder="Enter invoice number" maxlength="255" required style="width:190px; padding:5px 10px;">
-                        <button class="btn btn-success btn-sm">Approve &amp; Create Invoice</button>
+                <form method="POST" action="{{ route('quotations.approve', $quotation) }}" style="display:inline;" data-confirm="Approve this quotation?">
+                @csrf
+                    <button type="submit" class="btn btn-success btn-sm">Approve Quotation</button>
                     </form>
                 @endif
                 @if($quotation->isEditable())
@@ -33,18 +32,22 @@
                         <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                     </form>
                 @elseif($quotation->status === 'approved')
-                    <a href="{{ route('invoices.show', $quotation->invoice) }}" class="btn btn-primary btn-sm">View Invoice</a>
-                    <a href="{{ route('invoices.download', $quotation->invoice) }}" class="btn btn-secondary btn-sm">Download PDF</a>
-                    @if($quotation->invoice->deliveryChallan)
-                        <a href="{{ route('delivery-challans.show', $quotation->invoice->deliveryChallan) }}" class="btn btn-secondary btn-sm">Delivery Challan</a>
+                    @if(!$quotation->invoice)
+                        <button type="button" class="btn btn-success btn-sm" data-modal-open="generateInvoiceModal">Generate Invoice</button>
                     @else
-                        <form method="POST" action="{{ route('delivery-challans.store', $quotation->invoice) }}" style="display:inline;">
-                            @csrf
-                            <button type="submit" class="btn btn-secondary btn-sm">Create Delivery Challan</button>
-                        </form>
-                    @endif
+                         <a href="{{ route('invoices.show', $quotation->invoice) }}" class="btn btn-primary btn-sm">View Invoice</a>
+                        <a href="{{ route('invoices.download', $quotation->invoice) }}" class="btn btn-secondary btn-sm">Download PDF</a>
+                        @if($quotation->invoice->deliveryChallan)
+                            <a href="{{ route('delivery-challans.show', $quotation->invoice->deliveryChallan) }}" class="btn btn-secondary btn-sm">Delivery Challan</a>
+                        @else
+                            <form method="POST" action="{{ route('delivery-challans.store', $quotation->invoice) }}" style="display:inline;">
+                                @csrf
+                                <button type="submit" class="btn btn-secondary btn-sm">Create Delivery Challan</button>
+                            </form>
+                        @endif
 
-                    <a href="{{ route('invoices.show', $quotation->invoice) }}#collect-payment" class="btn btn-success btn-sm">Collect Payment</a>
+                        <a href="{{ route('invoices.show', $quotation->invoice) }}#collect-payment" class="btn btn-success btn-sm">Collect Payment</a>
+                    @endif
                     <form method="POST" action="{{ route('quotations.destroy', $quotation) }}" style="display:inline;" data-confirm="Delete this approved quotation? This will also delete the generated invoice and ledger entry.">
                         @csrf
                         @method('DELETE')
@@ -149,4 +152,34 @@
             </div>
         </div>
     </div>
+
+        @if($quotation->status === 'approved' && !$quotation->invoice)
+        <div id="generateInvoiceModal" class="modal {{ $errors->has('invoice_number') ? 'is-open' : '' }}" role="dialog" aria-modal="true" aria-labelledby="generateInvoiceTitle" aria-hidden="{{ $errors->has('invoice_number') ? 'false' : 'true' }}">
+            <div class="modal-backdrop" data-modal-close></div>
+            <div class="modal-dialog">
+                <div class="modal-header">
+                    <h3 id="generateInvoiceTitle">Generate Invoice</h3>
+                    <button type="button" class="modal-close" data-modal-close aria-label="Close">&times;</button>
+                </div>
+                <form method="POST" action="{{ route('quotations.generate-invoice', $quotation) }}">
+                    @csrf
+                    <div class="modal-body">
+                        <p class="text-muted">Enter an invoice number for approved quotation <strong>{{ $quotation->quotation_number }}</strong>.</p>
+                        <div class="form-group">
+                            <label for="invoice_number">Invoice Number <span class="text-danger">*</span></label>
+                            <input type="text" id="invoice_number" name="invoice_number" class="form-control" value="{{ old('invoice_number') }}" placeholder="Enter invoice number" maxlength="255" required autocomplete="off">
+                            @error('invoice_number')
+                                <small class="text-danger">{{ $message }}</small>
+                            @enderror
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-modal-close>Cancel</button>
+                        <button type="submit" class="btn btn-success">Generate Invoice</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endif
 @endsection
+

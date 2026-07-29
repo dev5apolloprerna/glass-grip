@@ -15,7 +15,7 @@ class QuotationWorkflowTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_sending_and_approving_are_separate_steps_with_a_manual_invoice_number(): void
+    public function test_sending_approving_and_generating_an_invoice_are_separate_steps(): void
     {
         $user = User::factory()->create();
         $quotation = $this->createQuotation($user);
@@ -30,11 +30,18 @@ class QuotationWorkflowTest extends TestCase
         $this->assertNull($quotation->invoice);
 
         $this->actingAs($user)
-            ->post(route('quotations.approve', $quotation), ['invoice_number' => ' INV-MANUAL-42 '])
+            ->post(route('quotations.approve', $quotation))
             ->assertRedirect(route('quotations.show', $quotation));
 
         $quotation->refresh();
         $this->assertSame('approved', $quotation->status);
+        $this->assertNull($quotation->invoice);
+
+        $this->actingAs($user)
+            ->post(route('quotations.generate-invoice', $quotation), ['invoice_number' => ' INV-MANUAL-42 '])
+            ->assertRedirect(route('quotations.show', $quotation));
+
+        $quotation->refresh();
         $this->assertSame('INV-MANUAL-42', $quotation->invoice->invoice_number);
     }
 
@@ -44,10 +51,72 @@ class QuotationWorkflowTest extends TestCase
         $quotation = $this->createQuotation($user);
 
         $this->actingAs($user)
-            ->post(route('quotations.approve', $quotation), ['invoice_number' => 'INV-100'])
+            ->post(route('quotations.approve', $quotation))
             ->assertSessionHas('error', 'Send the quotation before approving it.');
 
         $this->assertDatabaseMissing('invoices', ['invoice_number' => 'INV-100']);
+    }
+    public function test_sent_quotation_shows_approve_button_without_invoice_modal(): void
+    {
+        [$user, $quotation] = $this->makeQuotation();
+        $this->actingAs($user)->post(route('quotations.mark-sent', $quotation));
+
+        $this->actingAs($user)
+            ->get(route('quotations.show', $quotation))
+            ->assertOk()
+            ->assertSee('Approve Quotation')
+            ->assertDontSee('data-modal-open="generateInvoiceModal"', false)
+            ->assertDontSee('name="invoice_number"', false);
+    }
+
+    public function test_approved_quotation_shows_separate_generate_invoice_modal_and_download_after_generation(): void
+    {
+        [$user, $quotation] = $this->makeQuotation();
+        $this->actingAs($user)->post(route('quotations.mark-sent', $quotation));
+
+        $this->actingAs($user)
+            ->post(route('quotations.approve', $quotation))
+            ->assertRedirect(route('quotations.show', $quotation))
+            ->assertSessionHas('success', 'Quotation approved successfully. You can now generate the invoice.');
+
+        $quotation->refresh();
+        $this->assertSame('approved', $quotation->status);
+        $this->assertNull($quotation->invoice);
+
+        $this->actingAs($user)
+            ->get(route('quotations.show', $quotation))
+            ->assertOk()
+            ->assertSee('Quotation Approved')
+            ->assertSee('data-modal-open="generateInvoiceModal"', false)
+            ->assertSee('name="invoice_number"', false);
+
+        $this->actingAs($user)
+            ->post(route('quotations.generate-invoice', $quotation), ['invoice_number' => 'INV-APPROVED-1'])
+            ->assertRedirect(route('quotations.show', $quotation));
+
+        $quotation->refresh();
+        $this->assertNotNull($quotation->invoice);
+
+        $this->actingAs($user)
+            ->get(route('quotations.show', $quotation))
+            ->assertOk()
+            ->assertSee('Download PDF')
+            ->assertSee(route('invoices.download', $quotation->invoice), false);
+    }
+
+
+    public function test_sent_quotation_shows_invoice_generation_in_a_modal(): void
+    {
+        [$user, $quotation] = $this->makeQuotation();
+        $this->actingAs($user)->post(route('quotations.mark-sent', $quotation));
+
+        $this->actingAs($user)
+            ->get(route('quotations.show', $quotation))
+            ->assertOk()
+            ->assertSee('data-modal-open="generateInvoiceModal"', false)
+            ->assertSee('id="generateInvoiceModal"', false)
+            ->assertSee('name="invoice_number"', false)
+            ->assertSee('The invoice will be ready to view and download after it is generated.');
     }
 
     public function test_an_approved_quotation_shows_the_delivery_challan_action(): void
@@ -56,7 +125,8 @@ class QuotationWorkflowTest extends TestCase
         $quotation = $this->createQuotation($user);
 
         $this->actingAs($user)->post(route('quotations.mark-sent', $quotation));
-        $this->actingAs($user)->post(route('quotations.approve', $quotation), [
+        $this->actingAs($user)->post(route('quotations.approve', $quotation));
+        $this->actingAs($user)->post(route('quotations.generate-invoice', $quotation), [
             'invoice_number' => 'INV-DELIVERY-1',
         ]);
 
