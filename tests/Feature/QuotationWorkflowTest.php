@@ -43,6 +43,7 @@ class QuotationWorkflowTest extends TestCase
 
         $quotation->refresh();
         $this->assertSame('INV-MANUAL-42', $quotation->invoice->invoice_number);
+        $this->assertNull($quotation->invoice->deliveryChallan);
     }
 
     public function test_a_quotation_cannot_be_approved_before_it_is_sent(): void
@@ -56,22 +57,61 @@ class QuotationWorkflowTest extends TestCase
 
         $this->assertDatabaseMissing('invoices', ['invoice_number' => 'INV-100']);
     }
-    public function test_sent_quotation_shows_approve_button_without_invoice_modal(): void
+public function test_an_unsent_quotation_cannot_generate_an_invoice(): void
     {
-        [$user, $quotation] = $this->makeQuotation();
+        $user = User::factory()->create();
+        $quotation = $this->createQuotation($user);
+
+        $this->actingAs($user)
+            ->post(route('quotations.generate-invoice', $quotation), ['invoice_number' => 'INV-UNSENT'])
+            ->assertSessionHas('error', 'Send the quotation before generating an invoice.');
+
+        $this->assertNull($quotation->fresh()->invoice);
+    }
+
+    public function test_sent_quotation_shows_separate_approve_and_generate_invoice_buttons(): void
+    {
+        $user = User::factory()->create();
+        $quotation = $this->createQuotation($user);
         $this->actingAs($user)->post(route('quotations.mark-sent', $quotation));
 
         $this->actingAs($user)
             ->get(route('quotations.show', $quotation))
             ->assertOk()
             ->assertSee('Approve Quotation')
-            ->assertDontSee('data-modal-open="generateInvoiceModal"', false)
-            ->assertDontSee('name="invoice_number"', false);
+            ->assertSee('data-modal-open="generateInvoiceModal"', false)
+            ->assertSee('name="invoice_number"', false);
+    }
+
+    public function test_sent_quotation_can_generate_an_invoice_without_approval(): void
+    {
+        $user = User::factory()->create();
+        $quotation = $this->createQuotation($user);
+        $this->actingAs($user)->post(route('quotations.mark-sent', $quotation));
+
+        $this->actingAs($user)
+            ->post(route('quotations.generate-invoice', $quotation), ['invoice_number' => 'INV-WITHOUT-APPROVAL'])
+            ->assertRedirect(route('quotations.show', $quotation));
+
+        $quotation->refresh();
+        $this->assertTrue($quotation->isSent());
+        $this->assertSame('INV-WITHOUT-APPROVAL', $quotation->invoice->invoice_number);
+
+
+        $this->actingAs($user)
+            ->get(route('quotations.show', $quotation))
+            ->assertOk()
+            ->assertSee('Approve Quotation')
+            ->assertSee('Generate Invoice')
+            ->assertSee('Approve the quotation first to generate its invoice')
+            ->assertSee('View Invoice')
+            ->assertSee('Generate Delivery Challan');
     }
 
     public function test_approved_quotation_shows_separate_generate_invoice_modal_and_download_after_generation(): void
     {
-        [$user, $quotation] = $this->makeQuotation();
+        $user = User::factory()->create();
+        $quotation = $this->createQuotation($user);
         $this->actingAs($user)->post(route('quotations.mark-sent', $quotation));
 
         $this->actingAs($user)
@@ -104,21 +144,6 @@ class QuotationWorkflowTest extends TestCase
             ->assertSee(route('invoices.download', $quotation->invoice), false);
     }
 
-
-    public function test_sent_quotation_shows_invoice_generation_in_a_modal(): void
-    {
-        [$user, $quotation] = $this->makeQuotation();
-        $this->actingAs($user)->post(route('quotations.mark-sent', $quotation));
-
-        $this->actingAs($user)
-            ->get(route('quotations.show', $quotation))
-            ->assertOk()
-            ->assertSee('data-modal-open="generateInvoiceModal"', false)
-            ->assertSee('id="generateInvoiceModal"', false)
-            ->assertSee('name="invoice_number"', false)
-            ->assertSee('The invoice will be ready to view and download after it is generated.');
-    }
-
     public function test_an_approved_quotation_shows_the_delivery_challan_action(): void
     {
         $user = User::factory()->create();
@@ -135,7 +160,7 @@ class QuotationWorkflowTest extends TestCase
         $this->actingAs($user)
             ->get(route('quotations.show', $quotation))
             ->assertOk()
-            ->assertSee('Create Delivery Challan')
+            ->assertSee('Generate Delivery Challan')
             ->assertSee(route('delivery-challans.store', $quotation->invoice), false);
 
         $challan = DeliveryChallan::create([
@@ -149,7 +174,7 @@ class QuotationWorkflowTest extends TestCase
             ->assertOk()
             ->assertSee('Delivery Challan')
             ->assertSee(route('delivery-challans.show', $challan), false)
-            ->assertDontSee('Create Delivery Challan');
+            ->assertDontSee('Generate Delivery Challan');
     }
     private function createQuotation(User $user): Quotation
     {
