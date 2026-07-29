@@ -1,8 +1,53 @@
 document.addEventListener('DOMContentLoaded', function () {
   initSidebarToggle();
   initConfirmDelete();
+    initModals();
   initQuotationBuilder();
 });
+
+/* ---------------- Accessible modal dialogs ---------------- */
+function initModals() {
+  var activeModal = null;
+  var opener = null;
+
+  function openModal(modal, trigger) {
+    if (!modal) return;
+    activeModal = modal;
+    opener = trigger || null;
+    modal.classList.add('is-open');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('modal-open');
+    var firstInput = modal.querySelector('input:not([type="hidden"]), select, textarea');
+    if (firstInput) firstInput.focus();
+  }
+
+  function closeModal() {
+    if (!activeModal) return;
+    activeModal.classList.remove('is-open');
+    activeModal.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('modal-open');
+    if (opener) opener.focus();
+    activeModal = null;
+  }
+
+  document.querySelectorAll('[data-modal-open]').forEach(function (trigger) {
+    trigger.addEventListener('click', function () {
+      openModal(document.getElementById(trigger.getAttribute('data-modal-open')), trigger);
+    });
+  });
+
+  document.querySelectorAll('.modal').forEach(function (modal) {
+    modal.querySelectorAll('[data-modal-close]').forEach(function (close) {
+      close.addEventListener('click', closeModal);
+    });
+    if (modal.classList.contains('is-open')) openModal(modal, null);
+  });
+
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape') closeModal();
+  });
+}
+
 
 /* ---------------- Sidebar toggle (mobile) ---------------- */
 function initSidebarToggle() {
