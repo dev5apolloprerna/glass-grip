@@ -126,9 +126,12 @@ public function test_an_unsent_quotation_cannot_generate_an_invoice(): void
         $this->actingAs($user)
             ->get(route('quotations.show', $quotation))
             ->assertOk()
-            ->assertSee('Quotation Approved')
+            ->assertSee('class="quotation-actions"', false)
+            ->assertSee('class="quotation-actions-group quotation-actions-workflow"', false)
+            ->assertSee('class="quotation-actions-group quotation-actions-manage"', false)
             ->assertSee('data-modal-open="generateInvoiceModal"', false)
-            ->assertSee('name="invoice_number"', false);
+            ->assertSee('name="invoice_number"', false)
+            ->assertDontSee('Collect Payment');
 
         $this->actingAs($user)
             ->post(route('quotations.generate-invoice', $quotation), ['invoice_number' => 'INV-APPROVED-1'])
@@ -141,7 +144,9 @@ public function test_an_unsent_quotation_cannot_generate_an_invoice(): void
             ->get(route('quotations.show', $quotation))
             ->assertOk()
             ->assertSee('Download PDF')
-            ->assertSee(route('invoices.download', $quotation->invoice), false);
+            ->assertSee(route('invoices.download', $quotation->invoice), false)
+            ->assertSee('Generate Delivery Challan')
+            ->assertSee(route('delivery-challans.store', $quotation->invoice), false);
     }
 
     public function test_an_approved_quotation_shows_the_delivery_challan_action(): void
