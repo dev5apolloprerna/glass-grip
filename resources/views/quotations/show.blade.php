@@ -35,6 +35,15 @@
                 @elseif($quotation->status === 'approved')
                     <a href="{{ route('invoices.show', $quotation->invoice) }}" class="btn btn-primary btn-sm">View Invoice</a>
                     <a href="{{ route('invoices.download', $quotation->invoice) }}" class="btn btn-secondary btn-sm">Download PDF</a>
+                    @if($quotation->invoice->deliveryChallan)
+                        <a href="{{ route('delivery-challans.show', $quotation->invoice->deliveryChallan) }}" class="btn btn-secondary btn-sm">Delivery Challan</a>
+                    @else
+                        <form method="POST" action="{{ route('delivery-challans.store', $quotation->invoice) }}" style="display:inline;">
+                            @csrf
+                            <button type="submit" class="btn btn-secondary btn-sm">Create Delivery Challan</button>
+                        </form>
+                    @endif
+
                     <a href="{{ route('invoices.show', $quotation->invoice) }}#collect-payment" class="btn btn-success btn-sm">Collect Payment</a>
                     <form method="POST" action="{{ route('quotations.destroy', $quotation) }}" style="display:inline;" data-confirm="Delete this approved quotation? This will also delete the generated invoice and ledger entry.">
                         @csrf

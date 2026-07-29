@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Customer;
 use App\Models\Product;
+use App\Models\DeliveryChallan;
 use App\Models\Quotation;
 use App\Models\QuotationItem;
 use App\Models\User;
@@ -49,6 +50,37 @@ class QuotationWorkflowTest extends TestCase
         $this->assertDatabaseMissing('invoices', ['invoice_number' => 'INV-100']);
     }
 
+    public function test_an_approved_quotation_shows_the_delivery_challan_action(): void
+    {
+        $user = User::factory()->create();
+        $quotation = $this->createQuotation($user);
+
+        $this->actingAs($user)->post(route('quotations.mark-sent', $quotation));
+        $this->actingAs($user)->post(route('quotations.approve', $quotation), [
+            'invoice_number' => 'INV-DELIVERY-1',
+        ]);
+
+        $quotation->refresh();
+
+        $this->actingAs($user)
+            ->get(route('quotations.show', $quotation))
+            ->assertOk()
+            ->assertSee('Create Delivery Challan')
+            ->assertSee(route('delivery-challans.store', $quotation->invoice), false);
+
+        $challan = DeliveryChallan::create([
+            'challan_number' => 'DC-TEST-1',
+            'invoice_id' => $quotation->invoice->id,
+            'challan_date' => now()->toDateString(),
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('quotations.show', $quotation))
+            ->assertOk()
+            ->assertSee('Delivery Challan')
+            ->assertSee(route('delivery-challans.show', $challan), false)
+            ->assertDontSee('Create Delivery Challan');
+    }
     private function createQuotation(User $user): Quotation
     {
         $customer = Customer::create(['name' => 'Test Customer', 'created_by' => $user->id]);
