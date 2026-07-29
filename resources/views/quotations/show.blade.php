@@ -4,10 +4,14 @@
 
 @section('content')
     <div class="card">
-        <div class="card-header">
-            <h3>{{ $quotation->quotation_number }} <span class="pill pill-{{ $quotation->displayStatusClass() }}">{{ $quotation->displayStatus() }}</span></h3>
-            <div>
-                <a href="{{ route('quotations.download', $quotation) }}" class="btn btn-secondary btn-sm">Quotation PDF</a>
+         <div class="card-header quotation-header">
+            <div class="quotation-heading">
+                <h3>{{ $quotation->quotation_number }}</h3>
+                <span class="pill pill-{{ $quotation->displayStatusClass() }}">{{ $quotation->displayStatus() }}</span>
+            </div>
+            <div class="quotation-actions">
+                <div class="quotation-actions-group quotation-actions-workflow">
+                    <a href="{{ route('quotations.download', $quotation) }}" class="btn btn-secondary btn-sm">Quotation PDF</a>
                 @if($quotation->isEditable())
                     <form method="POST" action="{{ route('quotations.mark-sent', $quotation) }}" style="display:inline" data-confirm="Mark this quotation as sent? It can no longer be edited.">
                         @csrf
@@ -43,13 +47,13 @@
                     @endif
                     <a href="{{ route('invoices.show', $quotation->invoice) }}#collect-payment" class="btn btn-success btn-sm">Collect Payment</a>
                 @endif
-                @if($quotation->status === 'approved')
-                    @if(!$quotation->invoice)
-                        <button type="button" class="btn btn-success btn-sm" data-modal-open="generateInvoiceModal">Generate Invoice</button>
-                        @endif
 
-                        <a href="{{ route('invoices.show', $quotation->invoice) }}#collect-payment" class="btn btn-success btn-sm">Collect Payment</a>
-                    @endif
+                @if($quotation->status === 'approved' && !$quotation->invoice)
+                    <button type="button" class="btn btn-success btn-sm" data-modal-open="generateInvoiceModal">Generate Invoice</button>
+                @endif
+                </div>
+                <div class="quotation-actions-group quotation-actions-manage">
+                @if($quotation->status === 'approved')
                     <form method="POST" action="{{ route('quotations.destroy', $quotation) }}" style="display:inline;" data-confirm="Delete this approved quotation? This will also delete the generated invoice and ledger entry.">
                         @csrf
                         @method('DELETE')
@@ -68,6 +72,7 @@
                 </form>
                 <a href="{{ route('quotations.index') }}" class="btn btn-secondary btn-sm">&larr; Back</a>
             </div>
+        </div>
         </div>
         <div class="card-body">
             <div class="form-row">

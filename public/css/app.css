@@ -186,6 +186,36 @@ a:hover { text-decoration: underline; }
 
 .card-body { padding: 20px; }
 
+.quotation-header {
+  align-items: stretch;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.quotation-heading,
+.quotation-actions,
+.quotation-actions-group {
+  display: flex;
+  align-items: center;
+}
+
+.quotation-heading { gap: 10px; }
+.quotation-actions {
+  justify-content: space-between;
+  gap: 12px 20px;
+  flex-wrap: wrap;
+}
+.quotation-actions-group {
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.quotation-actions form { display: inline-flex !important; margin: 0; }
+.quotation-actions-manage {
+  border-left: 1px solid var(--color-border);
+  margin-left: auto;
+  padding-left: 20px;
+}
+
 .stat-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -487,4 +517,16 @@ body.modal-open { overflow: hidden; }
   .sidebar { position: fixed; left: -260px; top: 0; bottom: 0; z-index: 40; transition: left .2s; }
   .sidebar.open { left: 0; }
   .item-row { grid-template-columns: 1fr; }
+  .quotation-actions,
+  .quotation-actions-group { align-items: stretch; flex-direction: column; }
+  .quotation-actions .btn,
+  .quotation-actions form,
+  .quotation-actions form .btn { justify-content: center; width: 100%; }
+  .quotation-actions-manage {
+    border-left: 0;
+    border-top: 1px solid var(--color-border);
+    margin-left: 0;
+    padding-left: 0;
+    padding-top: 12px;
+  }
 }
