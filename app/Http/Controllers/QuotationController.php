@@ -184,12 +184,9 @@ class QuotationController extends Controller
     /**
      * Approve the quotation: locks editing and generates an invoice.
      */
-    public function approve(Request $request, Quotation $quotation)
+    public function approve(Quotation $quotation)
     {
         $this->authorizeAccess($quotation);
-               $request->merge([
-            'invoice_number' => trim((string) $request->input('invoice_number')),
-        ]);
 
         if ($quotation->status === 'approved') {
             return back()->with('error', 'Quotation is already approved.');
@@ -202,17 +199,38 @@ class QuotationController extends Controller
             return back()->with('error', 'Cannot approve a quotation with no items.');
         }
 
+        $quotation->update([
+            'status' => 'approved',
+            'approved_by' => Auth::id(),
+            'document_status' => 'quotation_sent',
+            'approved_at' => now(),
+        ]);
+
+        return redirect()->route('quotations.show', $quotation)
+            ->with('success', 'Quotation approved successfully. You can now generate the invoice.');
+    }
+
+    public function generateInvoice(Request $request, Quotation $quotation)
+    {
+        $this->authorizeAccess($quotation);
+
+        if ($quotation->status !== 'approved') {
+            return back()->with('error', 'Approve the quotation before generating an invoice.');
+        }
+
+        if ($quotation->invoice()->exists()) {
+            return back()->with('error', 'Invoice has already been generated.');
+        }
+
+        $request->merge([
+            'invoice_number' => trim((string) $request->input('invoice_number')),
+        ]);
+
         $data = $request->validate([
             'invoice_number' => ['required', 'string', 'max:255', 'unique:invoices,invoice_number'],
         ]);
 
         DB::transaction(function () use ($quotation, $data) {
-            $quotation->update([
-                'status' => 'approved',
-                'approved_by' => Auth::id(),
-                'document_status' => 'quotation_sent',
-                'approved_at' => now(),
-            ]);
 
             $invoice = Invoice::create([
                 'invoice_number' => trim($data['invoice_number']),
@@ -257,9 +275,9 @@ class QuotationController extends Controller
         });
 
         return redirect()->route('quotations.show', $quotation)
-            ->with('success', 'Quotation approved and invoice generated.');
-    }
- public function reject(Quotation $quotation)
+            ->with('success', 'Invoice generated successfully. You can now download the invoice PDF.');
+     }
+    public function reject(Quotation $quotation)
     {
         $this->authorizeAccess($quotation);
 
