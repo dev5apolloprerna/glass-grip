@@ -224,16 +224,19 @@ class QuotationController extends Controller
 
         $request->merge([
             'invoice_number' => trim((string) $request->input('invoice_number')),
+            'other_reference' => trim((string) $request->input('other_reference')),
         ]);
 
         $data = $request->validate([
             'invoice_number' => ['required', 'string', 'max:255', 'unique:invoices,invoice_number'],
+            'other_reference' => ['nullable', 'string', 'max:255'],
         ]);
 
         DB::transaction(function () use ($quotation, $data) {
 
             $invoice = Invoice::create([
                 'invoice_number' => trim($data['invoice_number']),
+                'other_reference' => $data['other_reference'] ?? null,
                 'quotation_id' => $quotation->id,
                 'customer_id' => $quotation->customer_id,
                 'invoice_date' => now()->toDateString(),

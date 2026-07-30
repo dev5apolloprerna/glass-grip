@@ -6,6 +6,7 @@ use App\Models\Customer;
 use App\Models\Product;
 use App\Models\DeliveryChallan;
 use App\Models\Quotation;
+use App\Models\Invoice;
 use App\Models\QuotationItem;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -14,6 +15,33 @@ use Tests\TestCase;
 class QuotationWorkflowTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_invoice_displays_reference_and_requested_item_columns(): void
+    {
+        $user = User::factory()->create();
+        $quotation = $this->createQuotation($user);
+        $invoice = Invoice::create([
+            'invoice_number' => 'INV-LAYOUT-1',
+            'quotation_id' => $quotation->id,
+            'customer_id' => $quotation->customer_id,
+            'invoice_date' => now()->toDateString(),
+            'sub_total' => 100,
+            'total_amount' => 100,
+        ]);
+        $invoice->load(['quotation.items.product', 'customer']);
+
+        $html = view('invoices.pdf', compact('invoice'))->render();
+
+        $this->assertStringContainsString('Reference No.', $html);
+        $this->assertStringNotContainsString("Supplier's Ref.", $html);
+        $this->assertStringContainsString('Sr. No.', $html);
+        $this->assertStringContainsString('Description of Goods', $html);
+        $this->assertStringContainsString('No. of Rolls', $html);
+        $this->assertStringContainsString('Per Mtr Rate', $html);
+        $this->assertStringContainsString('Total Amount', $html);
+        $this->assertStringNotContainsString('>Quantity<', $html);
+    }
+
 
     public function test_sending_approving_and_generating_an_invoice_are_separate_steps(): void
     {
@@ -38,11 +66,14 @@ class QuotationWorkflowTest extends TestCase
         $this->assertNull($quotation->invoice);
 
         $this->actingAs($user)
-            ->post(route('quotations.generate-invoice', $quotation), ['invoice_number' => ' INV-MANUAL-42 '])
+            ->post(route('quotations.generate-invoice', $quotation), [
+                'invoice_number' => ' INV-MANUAL-42 ',
+                'other_reference' => ' PO-REF-17 ',
+            ])
             ->assertRedirect(route('quotations.show', $quotation));
 
         $quotation->refresh();
-        $this->assertSame('INV-MANUAL-42', $quotation->invoice->invoice_number);
+        $this->assertSame('PO-REF-17', $quotation->invoice->other_reference);
         $this->assertNull($quotation->invoice->deliveryChallan);
     }
 
@@ -80,7 +111,8 @@ public function test_an_unsent_quotation_cannot_generate_an_invoice(): void
             ->assertOk()
             ->assertSee('Approve Quotation')
             ->assertSee('data-modal-open="generateInvoiceModal"', false)
-            ->assertSee('name="invoice_number"', false);
+            ->assertSee('name="invoice_number"', false)
+            ->assertSee('name="other_reference"', false);
     }
 
     public function test_sent_quotation_can_generate_an_invoice_without_approval(): void

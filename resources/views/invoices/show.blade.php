@@ -21,10 +21,10 @@
                     <p class="text-muted mb-0">Invoice Date</p>
                     <p>{{ $invoice->invoice_date->format('d M Y') }}</p>
                 </div>
-                <div>
+                <!-- <div>
                     <p class="text-muted mb-0">Quotation No.</p>
                     <p>{{ $invoice->quotation->quotation_number }}</p>
-                </div>
+                </div> -->
                 <div>
                     <p class="text-muted mb-0">Payment Status</p>
                     <p>

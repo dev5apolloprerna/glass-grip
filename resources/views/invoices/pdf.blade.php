@@ -9,7 +9,7 @@
    <div class="invoice-box tax-invoice">
     <div class="tax-heading">TAX INVOICE</div>
 
-    {{-- Seller block + invoice meta (Invoice No/Dated, Delivery Note/Mode of Payment, Supplier's Ref/Other Reference) --}}
+    {{-- Seller block + invoice meta --}}
     <table class="document-header">
         <colgroup>
             <col style="width:50%"><col style="width:12%"><col style="width:14%"><col style="width:10%"><col style="width:14%">
@@ -31,7 +31,7 @@
             <td>{{ $invoice->payment_terms ?? '-' }}</td>
         </tr>
         <tr>
-            <td class="header-label">Supplier's Ref.</td>
+            <td class="header-label">Reference No.</td>
             <td>{{ $invoice->quotation->quotation_number }}</td>
             <td class="header-label">Other Reference(s)</td>
             <td>{{ $invoice->other_reference ?? '-' }}</td>
@@ -78,17 +78,15 @@
     {{-- Items + subtotal / tax / total, all inside one continuous grid, exactly like the reference --}}
     <table class="items invoice-items">
         <colgroup>
-            <col style="width:5%"><col style="width:45%"><col style="width:13%">
-            <col style="width:13%"><col style="width:7%"><col style="width:17%">
+            <col style="width:8%"><col style="width:48%"><col style="width:12%">
         </colgroup>
         <thead>
             <tr>
-                <th class="text-center serial">Sl No.</th>
+                <th class="text-center serial">Sr No.</th>
                 <th>Description of Goods</th>
-                <th class="text-right">Quantity</th>
-                <th class="text-right">Rate</th>
-                <th class="text-center">per</th>
-                <th class="text-right">Amount</th>
+                <th class="text-right">No. of Rolls</th>
+                <th class="text-right">Per Mtr Rate</th>
+                <th class="text-right">Total Amount</th>
             </tr>
         </thead>
         <tbody>
@@ -98,18 +96,17 @@
                     <td>
                         <strong>{{ $item->product->name }}</strong>
                         @if($item->product->description)<small>{{ $item->product->description }}</small>@endif
-                        <small>HSN: {{ $item->product->hsn_code }} &nbsp;|&nbsp; Rolls: {{ $item->no_of_rolls }} &nbsp;|&nbsp; Size: {{ number_format($item->size_mtr, 2) }} Mtr</small>
+                        <small>HSN: {{ $item->product->hsn_code }} &nbsp;|&nbsp; Size: {{ number_format($item->size_mtr, 2) }} Mtr &nbsp;|&nbsp; Total Mtr: {{ number_format($item->total_mtr, 2) }} Mtr</small>
                     </td>
-                    <td class="text-right">{{ number_format($item->total_mtr, 2) }} Mtr</td>
+                    <td class="text-right">{{ $item->no_of_rolls }}</td>
                     <td class="text-right">{{ number_format($item->price_per_mtr, 2) }}</td>
-                    <td class="text-center">Mtr</td>
                     <td class="text-right">{{ number_format($item->amount, 2) }}</td>
                 </tr>
             @endforeach
 
             {{-- Sub Total --}}
             <tr class="summary-row">
-                <td></td><td></td><td></td><td></td><td></td>
+                <td></td><td></td><td></td><td></td>
                 <td class="text-right">{{ number_format($invoice->sub_total, 2) }}</td>
             </tr>
 
@@ -122,32 +119,32 @@
 
             @if($invoice->cgst_amount > 0)
             <tr class="summary-row">
-                <td></td><td>CGST @ 9%</td><td></td><td>9</td><td>%</td>
+                <td></td><td>CGST @ 9%</td><td></td><td>9%</td>
                 <td class="text-right">{{ number_format($invoice->cgst_amount, 2) }}</td>
             </tr>
             <tr class="summary-row">
-                <td></td><td>SGST @ 9%</td><td></td><td>9</td><td>%</td>
+                <td></td><td>CGST @ 9%</td><td></td><td>9%</td>
                 <td class="text-right">{{ number_format($invoice->sgst_amount, 2) }}</td>
             </tr>
             @elseif($invoice->igst_amount > 0)
             <tr class="summary-row">
-                <td></td><td>IGST @ 18%</td><td></td><td>18</td><td>%</td>
+                <td></td><td>IGST @ 18%</td><td></td><td>18%</td>
                 <td class="text-right">{{ number_format($invoice->igst_amount, 2) }}</td>
             </tr>
             @endif
 
             @if($invoice->round_off != 0)
             <tr class="summary-row">
-                <td></td><td>Round Off</td><td></td><td></td><td></td>
+                <td></td><td>Round Off</td><td></td><td></td>
                 <td class="text-right">{{ $invoice->round_off > 0 ? '+' : '' }} {{ number_format($invoice->round_off, 2) }}</td>
             </tr>
             @endif
 
             {{-- Total --}}
             <tr class="total-row">
-                <td colspan="2" class="text-right">Total</td>
-                <td class="text-right">{{ number_format($invoice->quotation->items->sum('total_mtr'), 2) }} Mtr</td>
-                <td colspan="2"></td>
+                <td colspan="2" class="text-right">Total</td>              
+                 <td class="text-right">{{ $invoice->quotation->items->sum('no_of_rolls') }}</td>
+                <td></td>
                 <td class="text-right">{{ number_format($invoice->total_amount, 2) }}</td>
             </tr>
         </tbody>

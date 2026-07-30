@@ -9,7 +9,7 @@ class NumberSettingController extends Controller
 {
     public function index()
     {
-        foreach (['quotation', 'invoice'] as $type) {
+       /* foreach (['quotation', 'invoice'] as $type) {
             NumberSetting::firstOrCreate(
                 ['document_type' => $type],
                 [
@@ -21,7 +21,18 @@ class NumberSettingController extends Controller
             );
         }
 
-        $settings = NumberSetting::orderBy('document_type')->get();
+        $settings = NumberSetting::orderBy('document_type')->get();*/
+         NumberSetting::firstOrCreate(
+            ['document_type' => 'quotation'],
+            [
+                'prefix' => 'QUO-',
+                'postfix' => '',
+                'next_number' => 1,
+                'number_padding' => 4,
+            ]
+        );
+
+        $settings = NumberSetting::where('document_type', 'quotation')->get();
 
         return view('number-settings.index', compact('settings'));
     }
