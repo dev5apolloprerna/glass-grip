@@ -32,8 +32,8 @@
         </tr>
         <tr>
             <td class="header-label">Reference No.</td>
-            <td>{{ $invoice->quotation->quotation_number }}</td>
             <td class="header-label">Other Reference(s)</td>
+            <td>-</td>
             <td>{{ $invoice->other_reference ?? '-' }}</td>
         </tr>
     </table>

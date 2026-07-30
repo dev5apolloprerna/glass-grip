@@ -22,6 +22,7 @@ class QuotationWorkflowTest extends TestCase
         $quotation = $this->createQuotation($user);
         $invoice = Invoice::create([
             'invoice_number' => 'INV-LAYOUT-1',
+            'other_reference' => 'CUSTOMER-REF-42',
             'quotation_id' => $quotation->id,
             'customer_id' => $quotation->customer_id,
             'invoice_date' => now()->toDateString(),
@@ -34,6 +35,8 @@ class QuotationWorkflowTest extends TestCase
 
         $this->assertStringContainsString('Reference No.', $html);
         $this->assertStringNotContainsString("Supplier's Ref.", $html);
+        $this->assertStringContainsString('CUSTOMER-REF-42', $html);
+        $this->assertStringNotContainsString($quotation->quotation_number, $html);
         $this->assertStringContainsString('Sr. No.', $html);
         $this->assertStringContainsString('Description of Goods', $html);
         $this->assertStringContainsString('No. of Rolls', $html);
