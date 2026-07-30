@@ -161,7 +161,7 @@
     </div>
 
     @if(($quotation->isSent() || $quotation->status === 'approved') && !$quotation->invoice)
-        <div id="generateInvoiceModal" class="modal {{ $errors->has('invoice_number') ? 'is-open' : '' }}" role="dialog" aria-modal="true" aria-labelledby="generateInvoiceTitle" aria-hidden="{{ $errors->has('invoice_number') ? 'false' : 'true' }}">
+        <div id="generateInvoiceModal" class="modal {{ $errors->hasAny(['invoice_number', 'other_reference']) ? 'is-open' : '' }}" role="dialog" aria-modal="true" aria-labelledby="generateInvoiceTitle" aria-hidden="{{ $errors->hasAny(['invoice_number', 'other_reference']) ? 'false' : 'true' }}">
             <div class="modal-backdrop" data-modal-close></div>
             <div class="modal-dialog">
                 <div class="modal-header">
@@ -176,6 +176,13 @@
                             <label for="invoice_number">Invoice Number <span class="text-danger">*</span></label>
                             <input type="text" id="invoice_number" name="invoice_number" class="form-control" value="{{ old('invoice_number') }}" placeholder="Enter invoice number" maxlength="255" required autocomplete="off">
                             @error('invoice_number')
+                                <small class="text-danger">{{ $message }}</small>
+                            @enderror
+                        </div>
+                    <div class="form-group">
+                            <label for="other_reference">Reference Number</label>
+                            <input type="text" id="other_reference" name="other_reference" class="form-control" value="{{ old('other_reference') }}" placeholder="Enter reference number" maxlength="255" autocomplete="off">
+                            @error('other_reference')
                                 <small class="text-danger">{{ $message }}</small>
                             @enderror
                         </div>
