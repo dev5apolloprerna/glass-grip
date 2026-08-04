@@ -6,7 +6,6 @@ use App\Models\Customer;
 use App\Models\CustomerLedger;
 use App\Models\Invoice;
 use App\Models\Payment;
-use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -17,35 +16,20 @@ class PaymentController extends Controller
     /**
      * Record a payment collected against a specific approved quotation's invoice.
      */
-        public function index(Request $request)
+    public function index()
     {
-        $user = Auth::user();
-        $employees = $user->isSuperAdmin()
-            ? User::where('status', 'active')->orderBy('name')->get()
-            : collect([$user]);
-
-        $employeeId = $user->isSuperAdmin()
-            ? (int) ($request->integer('employee_id') ?: ($employees->first()?->id ?? 0))
-            : $user->id;
-
-        abort_unless($employees->contains('id', $employeeId), 403);
-
+       
         $customers = Customer::query()
-            ->whereHas('invoices.quotation', fn ($query) => $query->where('user_id', $employeeId))
-            ->withSum(['invoices as billed_amount' => fn ($query) => $query->whereHas('quotation', fn ($q) => $q->where('user_id', $employeeId))], 'total_amount')
-            ->withSum(['payments as customer_paid_amount' => fn ($query) => $query->whereNull('invoice_id')->where('employee_id', $employeeId)], 'amount')
+            ->whereHas('invoices')
+            ->withSum('invoices as billed_amount', 'total_amount')
+            ->withSum('payments as collected_amount', 'amount')
             ->orderBy('name')
             ->get();
 
-        $invoicePayments = Payment::query()
-            ->whereNotNull('invoice_id')
-            ->whereHas('invoice.quotation', fn ($query) => $query->where('user_id', $employeeId))
-            ->selectRaw('customer_id, SUM(amount) as total')
-            ->groupBy('customer_id')
-            ->pluck('total', 'customer_id');
+
 
         foreach ($customers as $customer) {
-            $customer->collected_amount = (float) ($invoicePayments[$customer->id] ?? 0) + (float) ($customer->customer_paid_amount ?? 0);
+            $customer->collected_amount = (float) ($customer->collected_amount ?? 0);
             $customer->due_amount = max(0, (float) ($customer->billed_amount ?? 0) - $customer->collected_amount);
         }
 
@@ -55,19 +39,17 @@ class PaymentController extends Controller
             'due' => $customers->sum('due_amount'),
         ];
 
-        $recentPayments = Payment::with(['customer', 'employee'])
+        $recentPayments = Payment::with('customer')
             ->whereNull('invoice_id')
-            ->where('employee_id', $employeeId)
             ->latest('payment_date')->latest('id')->limit(20)->get();
 
-        return view('payments.index', compact('employees', 'employeeId', 'customers', 'totals', 'recentPayments'));
+        return view('payments.index', compact('customers', 'totals', 'recentPayments'));
     }
 
     public function storeCustomerPayment(Request $request)
     {
-        $user = Auth::user();
+
         $data = $request->validate([
-            'employee_id' => ['required', 'integer', 'exists:users,id'],
             'customer_id' => ['required', 'integer', 'exists:customers,id'],
             'payment_date' => ['required', 'date'],
             'amount' => ['required', 'numeric', 'min:0.01'],
@@ -76,9 +58,7 @@ class PaymentController extends Controller
             'notes' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        $employeeId = (int) $data['employee_id'];
-        abort_if(! $user->isSuperAdmin() && $employeeId !== $user->id, 403);
-        abort_unless(Invoice::where('customer_id', $data['customer_id'])->whereHas('quotation', fn ($q) => $q->where('user_id', $employeeId))->exists(), 422, 'This customer is not assigned to the selected employee.');
+        abort_unless(Invoice::where('customer_id', $data['customer_id'])->exists(), 422, 'This company does not have an invoice.');
 
         $customer = Customer::findOrFail($data['customer_id']);
         $amount = (float) $data['amount'];
@@ -86,10 +66,9 @@ class PaymentController extends Controller
             return back()->withErrors(['amount' => 'Amount cannot exceed the customer balance (₹'.number_format(max(0, $customer->currentBalance()), 2).').'])->withInput();
         }
 
-        $payment = DB::transaction(function () use ($data, $employeeId, $customer, $amount) {
+        $payment = DB::transaction(function () use ($data, $customer, $amount) {
             $payment = Payment::create([
                 'customer_id' => $customer->id,
-                'employee_id' => $employeeId,
                 'payment_date' => $data['payment_date'],
                 'amount' => $amount,
                 'payment_method' => $data['payment_method'],
@@ -113,16 +92,14 @@ class PaymentController extends Controller
             return $payment;
         });
 
-        return redirect()->route('payment-collections.index', ['employee_id' => $employeeId])
+        return redirect()->route('payment-collections.index')
             ->with('success', 'Payment collected successfully. Receipt '.$payment->receipt_number.' generated.');
     }
 
     public function receipt(Payment $payment)
     {
         abort_unless($payment->invoice_id === null && $payment->receipt_number, 404);
-        $user = Auth::user();
-        abort_if(! $user->isSuperAdmin() && $payment->employee_id !== $user->id, 403);
-        $payment->load(['customer', 'employee', 'enteredBy']);
+        $payment->load(['customer', 'enteredBy']);
 
         return Pdf::loadView('payments.receipt', compact('payment'))->setPaper('a5')->download($payment->receipt_number.'.pdf');
     }
