@@ -50,6 +50,9 @@ Route::middleware('guest')->group(function () {
     Route::get('delivery-challans/{deliveryChallan}/download', [DeliveryChallanController::class, 'download'])->name('delivery-challans.download');
     
     // Payment collection against a specific invoice
+    Route::get('payment-collections', [PaymentController::class, 'index'])->name('payment-collections.index');
+    Route::post('payment-collections', [PaymentController::class, 'storeCustomerPayment'])->name('payment-collections.store');
+    Route::get('payment-collections/{payment}/receipt', [PaymentController::class, 'receipt'])->name('payment-collections.receipt');
     Route::post('invoices/{invoice}/payments', [PaymentController::class, 'store'])->name('payments.store');
     Route::delete('payments/{payment}', [PaymentController::class, 'destroy'])->name('payments.destroy');
 
