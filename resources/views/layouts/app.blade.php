@@ -11,7 +11,7 @@
 <body>
     <div class="app-shell">
         <aside class="sidebar">
-            <div class="sidebar-brand">VMS <span>Pro</span></div>
+            <div class="sidebar-brand"><img src="{{ asset('images/glass-grip-logo.png') }}" alt="Glass Grip"></div>
             <nav class="sidebar-nav">
                 <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">Dashboard</a>
 

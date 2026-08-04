@@ -16,7 +16,8 @@
         </colgroup>
         <tr>
             <td class="seller" rowspan="3">
-                <div class="company-name">{{ config('app.name', 'Your Company') }}</div>
+                <img class="company-logo" src="{{ public_path('images/glass-grip-logo.png') }}" alt="Glass Grip">
+                <div class="company-name">{{ config('invoice.company_name') }}</div>
                 <div class="company-tagline">Quality products. Reliable service.</div>
             </td>
             <td class="header-label">Invoice No.</td>
@@ -162,7 +163,7 @@
         <colgroup><col style="width:65%"><col style="width:35%"></colgroup>
         <tr>
             <td><strong>Declaration</strong><br>We declare that this invoice shows the actual price of the goods described and that all particulars are true and correct.</td>
-            <td class="signature"><strong>for {{ config('app.name') }}</strong><div class="signature-space"></div>Authorised Signatory</td>
+            <td class="signature"><strong>for {{ config('invoice.company_name') }}</strong><div class="signature-space"></div>Authorised Signatory</td>
         </tr>
     </table>
 

@@ -11,7 +11,9 @@
 	<div class="invoice-box">@php($invoice=$deliveryChallan->invoice)
 		<div class="invoice-header">
 			<div class="left">
-				<div class="company-name">{{ config('app.name') }}</div><div class="company-tagline">Quality products. Reliable service.</div>
+			<img class="company-logo" src="{{ public_path('images/glass-grip-logo.png') }}" alt="Glass Grip">
+				<div class="company-name">{{ config('invoice.company_name') }}</div><div class="company-tagline">Quality products. Reliable service.</div>
+				<div class="company-address">{{ config('invoice.address') }},<br>{{ config('invoice.city') }}, {{ config('invoice.state') }} - {{ config('invoice.postcode') }}.</div>
 			</div>
 			<div class="right">
 				<div class="invoice-title">DELIVERY CHALLAN</div><div class="document-number">{{ $deliveryChallan->challan_number }}</div>
@@ -48,7 +50,7 @@
 					<td>{{ number_format($item->total_mtr,2) }}</td>
 				</tr>@endforeach</tbody>
 		</table>
-		        <div class="footer-grid"><div class="footer-note">Please retain this document for your records.<br>This is a computer-generated document.</div><div class="signature"><div class="signature-space"></div><strong>Authorised Signatory</strong><br>For {{ config('app.name') }}</div></div>
+		        <div class="footer-grid"><div class="footer-note">Please retain this document for your records.<br>This is a computer-generated document.</div><div class="signature"><div class="signature-space"></div><strong>Authorised Signatory</strong><br>For {{ config('invoice.company_name') }}</div></div>
         <div class="bottom-bar">Thank you for your business</div>
 	</div>
 </body>

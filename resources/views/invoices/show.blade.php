@@ -86,7 +86,7 @@
                 @endif
                 <div class="row grand"><span>Net Amount</span><span>&#8377;{{ number_format($invoice->total_amount, 2) }}</span></div>
                 <div class="row"><span>Amount Received</span><span class="text-success">&#8377;{{ number_format($totalPaid, 2) }}</span></div>
-                <div class="row"><span>Balance Due</span><span class="{{ $balanceDue > 0 ? 'text-danger' : 'text-success' }}">&#8377;{{ number_format($balanceDue, 2) }}</span></div>
+
             </div>
         </div>
     </div>
