@@ -17,7 +17,7 @@
 
                 <div class="sidebar-section">Sales</div>
                 <a href="{{ route('quotations.index') }}" class="{{ request()->routeIs('quotations.*') ? 'active' : '' }}">Quotations / Invoices</a>
-
+                <a href="{{ route('payment-collections.index') }}" class="{{ request()->routeIs('payment-collections.*') ? 'active' : '' }}">Payment Collection</a>
                 @if(auth()->user()->isSuperAdmin())
                     <div class="sidebar-section">Masters</div>
                     <a href="{{ route('customers.index') }}" class="{{ request()->routeIs('customers.*') ? 'active' : '' }}">Company</a>

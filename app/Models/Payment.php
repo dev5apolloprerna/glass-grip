@@ -12,6 +12,8 @@ class Payment extends Model
     protected $fillable = [
         'invoice_id',
         'customer_id',
+        'employee_id',
+        'receipt_number',
         'payment_date',
         'amount',
         'payment_method',
@@ -41,5 +43,9 @@ class Payment extends Model
     public function enteredBy()
     {
         return $this->belongsTo(User::class, 'entered_by');
+    }
+    public function employee()
+    {
+        return $this->belongsTo(User::class, 'employee_id');
     }
 }
