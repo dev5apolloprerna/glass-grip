@@ -39,7 +39,52 @@ class PaymentCollectionTest extends TestCase
             'customer_id' => 999, 'payment_date' => now()->toDateString(), 'amount' => 1, 'payment_method' => 'cash',
         ])->assertSessionHasErrors('customer_id');
     }
-        public function test_collection_page_combines_companies_and_payments_across_users(): void
+    public function test_collection_page_can_search_by_company_name(): void
+    {
+        $employee = User::factory()->create(['role' => 'user']);
+        $matchingCustomer = Customer::create(['name' => 'Acme Glass Industries', 'created_by' => $employee->id]);
+        $otherCustomer = Customer::create(['name' => 'Bright Windows Limited', 'created_by' => $employee->id]);
+
+        foreach ([$matchingCustomer, $otherCustomer] as $index => $customer) {
+            $quotation = Quotation::create([
+                'quotation_number' => 'Q-SEARCH-'.$index,
+                'customer_id' => $customer->id,
+                'user_id' => $employee->id,
+                'quotation_date' => now(),
+                'status' => 'approved',
+                'gst_applicable' => false,
+                'sub_total' => 100,
+                'gst_amount' => 0,
+                'total_amount' => 100,
+            ]);
+            Invoice::create([
+                'invoice_number' => 'I-SEARCH-'.$index,
+                'quotation_id' => $quotation->id,
+                'customer_id' => $customer->id,
+                'invoice_date' => now(),
+                'sub_total' => 100,
+                'gst_amount' => 0,
+                'total_amount' => 100,
+            ]);
+        }
+
+        $this->actingAs($employee)->get(route('payment-collections.index', ['company' => 'acme glass']))
+            ->assertOk()
+            ->assertSee('Acme Glass Industries')
+            ->assertDontSee('Bright Windows Limited')
+            ->assertSee('value="acme glass"', false);
+    }
+
+    public function test_collection_page_shows_a_message_when_company_search_has_no_matches(): void
+    {
+        $employee = User::factory()->create(['role' => 'user']);
+
+        $this->actingAs($employee)->get(route('payment-collections.index', ['company' => 'Unknown Company']))
+            ->assertOk()
+            ->assertSee('No companies match your search.');
+    }
+
+    public function test_collection_page_combines_companies_and_payments_across_users(): void
     {
         $viewer = User::factory()->create(['role' => 'user']);
         $otherEmployee = User::factory()->create(['role' => 'user']);
