@@ -9,10 +9,10 @@ body{font-family:DejaVu Sans,sans-serif;color:#1f2937;font-size:12px;margin:0}.r
         <tr><td class="label">Received From</td><td><strong>{{ $payment->customer->name }}</strong><br>{{ $payment->customer->contact_person }} {{ $payment->customer->phone ? '· '.$payment->customer->phone : '' }}</td></tr>
         <tr><td class="label">Payment Method</td><td>{{ ucwords(str_replace('_', ' ', $payment->payment_method)) }}</td></tr>
         <tr><td class="label">Reference Number</td><td>{{ $payment->reference_number ?: '-' }}</td></tr>
-        <tr><td class="label">Collected By</td><td>{{ $payment->employee->name ?? '-' }}</td></tr>
+        <tr><td class="label">Collected By</td><td>{{ $payment->enteredBy->name ?? '-' }}</td></tr>
     </table>
     <div class="amount">Amount Received: &#8377;{{ number_format($payment->amount, 2) }}</div>
     @if($payment->notes)<p><strong>Notes:</strong> {{ $payment->notes }}</p>@endif
     <div class="signature">For {{ config('invoice.company_name') }}<br><br><br><strong>Authorised Signatory</strong></div>
-    <div class="footer muted">This is a computer-generated customer-wise payment receipt and does not require a signature.</div>
+    <div class="footer muted">This is a computer-generated company-wise payment receipt and does not require a signature.</div>
 </div></body></html>

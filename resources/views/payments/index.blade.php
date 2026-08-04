@@ -4,20 +4,7 @@
 
 @section('content')
     <div class="card">
-        <div class="card-header"><h3>Employee-wise Customer Collection</h3></div>
-        <div class="card-body">
-            <form method="GET" class="filters-bar">
-                <div class="form-group">
-                    <label for="employee_id">Employee</label>
-                    <select id="employee_id" name="employee_id" class="form-control" onchange="this.form.submit()" {{ auth()->user()->isSuperAdmin() ? '' : 'disabled' }}>
-                        @foreach($employees as $employee)
-                            <option value="{{ $employee->id }}" @selected($employeeId === $employee->id)>{{ $employee->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <noscript><button class="btn btn-secondary" type="submit">View</button></noscript>
-            </form>
-        </div>
+                <div class="card-header"><h3>Company-wise Payment Collection</h3></div>
     </div>
 
     <div class="stat-grid">
@@ -27,10 +14,10 @@
     </div>
 
     <div class="card">
-        <div class="card-header"><h3>Customer Outstanding</h3></div>
+        <div class="card-header"><h3>Company Outstanding</h3></div>
         <div class="table-wrap">
             <table class="table">
-                <thead><tr><th>Customer</th><th>Contact</th><th class="text-right">Receivable</th><th class="text-right">Collected</th><th class="text-right">Pending</th><th></th></tr></thead>
+                <thead><tr><th>Company</th><th>Contact</th><th class="text-right">Receivable</th><th class="text-right">Collected</th><th class="text-right">Pending</th><th></th></tr></thead>
                 <tbody>
                     @forelse($customers as $customer)
                         <tr>
@@ -48,7 +35,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="6" class="text-center text-muted">No invoiced customers found for this employee.</td></tr>
+                        <tr><td colspan="6" class="text-center text-muted">No invoiced companies found.</td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -56,7 +43,7 @@
     </div>
 
     <div class="card">
-        <div class="card-header"><h3>Recent Customer Payments</h3></div>
+        <div class="card-header"><h3>Recent Company Payments</h3></div>
         <div class="table-wrap"><table class="table">
             <thead><tr><th>Receipt</th><th>Date</th><th>Customer</th><th>Method</th><th class="text-right">Amount</th><th></th></tr></thead>
             <tbody>@forelse($recentPayments as $payment)<tr>
@@ -71,8 +58,8 @@
         <form method="POST" action="{{ route('payment-collections.store') }}">@csrf
             <div class="modal-header"><h3>Collect Payment</h3><button class="modal-close" type="button">&times;</button></div>
             <div class="modal-body">
-                <input type="hidden" name="employee_id" value="{{ $employeeId }}"><input type="hidden" name="customer_id" id="collectionCustomer">
-                <p>Customer: <strong id="collectionName"></strong><br><span class="text-muted">Pending: &#8377;<span id="collectionDue"></span></span></p>
+                <input type="hidden" name="customer_id" id="collectionCustomer">
+                <p>Company: <strong id="collectionName"></strong><br><span class="text-muted">Pending: &#8377;<span id="collectionDue"></span></span></p>
                 <div class="form-row"><div class="form-group"><label>Date *</label><input type="date" name="payment_date" value="{{ now()->toDateString() }}" class="form-control" required></div>
                 <div class="form-group"><label>Amount *</label><input type="number" id="collectionAmount" name="amount" min="0.01" step="0.01" class="form-control" required></div></div>
                 <div class="form-group"><label>Payment Method *</label><select name="payment_method" class="form-control" required><option value="cash">Cash</option><option value="upi">UPI</option><option value="bank_transfer">Bank Transfer</option><option value="cheque">Cheque</option><option value="other">Other</option></select></div>
