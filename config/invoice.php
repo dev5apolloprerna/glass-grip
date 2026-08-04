@@ -1,12 +1,12 @@
 <?php
 
 return [
-    'company_name' => env('INVOICE_COMPANY_NAME', 'Your Company Name'),
+    'company_name' => env('INVOICE_COMPANY_NAME', 'Glass Grip'),
     'tagline' => env('INVOICE_TAGLINE', 'Quality products and professional service'),
-    'address' => env('INVOICE_ADDRESS', 'Company address'),
-    'city' => env('INVOICE_CITY', ''),
-    'state' => env('INVOICE_STATE', ''),
-    'postcode' => env('INVOICE_POSTCODE', ''),
+    'address' => env('INVOICE_ADDRESS', '10, Sahyog Estate, Opp Bank Of Maharashtra'),
+    'city' => env('INVOICE_CITY', 'Isanpur, Ahmedabad'),
+    'state' => env('INVOICE_STATE', 'Gujarat'),
+    'postcode' => env('INVOICE_POSTCODE', '382443'),
     'gst_number' => env('INVOICE_GST_NUMBER', ''),
     'pan_number' => env('INVOICE_PAN_NUMBER', ''),
     'email' => env('INVOICE_EMAIL', ''),

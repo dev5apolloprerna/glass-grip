@@ -383,6 +383,15 @@ table.table td.wrap { white-space: normal; }
 .pill-advance { background: #dbeafe; color: #1e40af; }
 .pill-settled { background: #e5e7eb; color: #374151; }
 
+
+.sidebar-brand img {
+    display: block;
+    width: 170px;
+    max-width: 100%;
+    height: auto;
+    margin: 0 auto;
+}
+
 /* ---------- Alerts ---------- */
 .alert {
   padding: 12px 16px;

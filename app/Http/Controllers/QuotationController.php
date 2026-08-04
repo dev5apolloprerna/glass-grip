@@ -89,9 +89,12 @@ class QuotationController extends Controller
     public function show(Quotation $quotation)
     {
         $this->authorizeAccess($quotation);
-        $quotation->load(['items.product', 'customer', 'user', 'approvedBy', 'invoice']);
+        $quotation->load(['items.product', 'customer', 'user', 'approvedBy', 'invoice.payments']);
 
-        return view('quotations.show', compact('quotation'));
+        $totalPaid = $quotation->invoice?->totalPaid();
+        $balanceDue = $quotation->invoice?->balanceDue();
+
+        return view('quotations.show', compact('quotation', 'totalPaid', 'balanceDue'));
     }
     public function download(Quotation $quotation)
     {
