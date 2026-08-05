@@ -16,11 +16,21 @@ class PaymentController extends Controller
     /**
      * Record a payment collected against a specific approved quotation's invoice.
      */
-    public function index()
+    public function index(Request $request)
     {
        
+        $companySearch = $request->string('company')->trim()->limit(100)->toString();
+
+        $companySuggestions = Customer::query()
+            ->whereHas('invoices')
+            ->orderBy('name')
+            ->pluck('name');
+
         $customers = Customer::query()
             ->whereHas('invoices')
+            ->when($companySearch !== '', function ($query) use ($companySearch) {
+                $query->where('name', 'like', '%'.$companySearch.'%');
+            })
             ->withSum('invoices as billed_amount', 'total_amount')
             ->withSum('payments as collected_amount', 'amount')
             ->orderBy('name')
@@ -41,9 +51,14 @@ class PaymentController extends Controller
 
         $recentPayments = Payment::with('customer')
             ->whereNull('invoice_id')
+            ->when($companySearch !== '', function ($query) use ($companySearch) {
+                $query->whereHas('customer', function ($customerQuery) use ($companySearch) {
+                    $customerQuery->where('name', 'like', '%'.$companySearch.'%');
+                });
+            })
             ->latest('payment_date')->latest('id')->limit(20)->get();
 
-        return view('payments.index', compact('customers', 'totals', 'recentPayments'));
+        return view('payments.index', compact('customers', 'totals', 'recentPayments', 'companySearch', 'companySuggestions'));
     }
 
     public function storeCustomerPayment(Request $request)

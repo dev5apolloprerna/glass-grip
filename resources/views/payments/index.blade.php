@@ -15,6 +15,23 @@
 
     <div class="card">
         <div class="card-header"><h3>Company Outstanding</h3></div>
+            <div class="card-body">
+            <form method="GET" action="{{ route('payment-collections.index') }}" class="filters-bar">
+                <div class="form-group">
+                    <label for="companySearch">Search Company</label>
+                    <input type="search" id="companySearch" name="company" value="{{ $companySearch }}" class="form-control" placeholder="Enter company name" maxlength="100" autocomplete="off" list="companySuggestions">
+                    <datalist id="companySuggestions">
+                        @foreach($companySuggestions as $companyName)
+                            <option value="{{ $companyName }}"></option>
+                        @endforeach
+                    </datalist>
+                </div>
+                <button type="submit" class="btn btn-primary">Search</button>
+                @if($companySearch !== '')
+                    <a href="{{ route('payment-collections.index') }}" class="btn btn-secondary">Clear</a>
+                @endif
+            </form>
+        </div>
         <div class="table-wrap">
             <table class="table">
                 <thead><tr><th>Company</th><th>Contact</th><th class="text-right">Receivable</th><th class="text-right">Collected</th><th class="text-right">Pending</th><th></th></tr></thead>
@@ -35,7 +52,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="6" class="text-center text-muted">No invoiced companies found.</td></tr>
+                        <tr><td colspan="6" class="text-center text-muted">{{ $companySearch !== '' ? 'No companies match your search.' : 'No invoiced companies found.' }}</td></tr>
                     @endforelse
                 </tbody>
             </table>

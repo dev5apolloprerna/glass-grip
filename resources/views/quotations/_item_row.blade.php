@@ -27,7 +27,7 @@
         <input type="number" step="1" min="1" name="items[{{ $index }}][no_of_rolls]" class="form-control js-rolls" value="{{ optional($item)->no_of_rolls }}" required>
     </div>
     <div class="form-group">
-        <label>Price / Mtr (&#8377;)</label>
+        <label>Price / Roll (&#8377;)</label>
         <input type="number" step="0.01" min="0" name="items[{{ $index }}][price_per_mtr]" class="form-control js-price" value="{{ optional($item)->price_per_mtr }}" required>
     </div>
     <div class="form-group">

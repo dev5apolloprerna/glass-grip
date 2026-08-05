@@ -156,6 +156,7 @@
                     <div class="row"><span>Round Off</span><span>{{ $quotation->round_off > 0 ? '+' : '' }}&#8377;{{ number_format($quotation->round_off, 2) }}</span></div>
                 @endif
                 <div class="row grand"><span>Net Amount</span><span>&#8377;{{ number_format($quotation->total_amount, 2) }}</span></div>
+                <div class="row"><span>Previous Due</span><span class="{{ $previousDue > 0 ? 'text-danger' : 'text-success' }}">&#8377;{{ number_format($previousDue, 2) }}</span></div>
                  @if($quotation->invoice)
                     <div class="row"><span>Amount Received</span><span class="text-success">&#8377;{{ number_format($totalPaid, 2) }}</span></div>
                     <div class="row"><span>Balance Due</span><span class="{{ $balanceDue > 0 ? 'text-danger' : 'text-success' }}">&#8377;{{ number_format($balanceDue, 2) }}</span></div>
