@@ -19,7 +19,12 @@
             <form method="GET" action="{{ route('payment-collections.index') }}" class="filters-bar">
                 <div class="form-group">
                     <label for="companySearch">Search Company</label>
-                    <input type="search" id="companySearch" name="company" value="{{ $companySearch }}" class="form-control" placeholder="Enter company name" maxlength="100" autocomplete="off">
+                    <input type="search" id="companySearch" name="company" value="{{ $companySearch }}" class="form-control" placeholder="Enter company name" maxlength="100" autocomplete="off" list="companySuggestions">
+                    <datalist id="companySuggestions">
+                        @foreach($companySuggestions as $companyName)
+                            <option value="{{ $companyName }}"></option>
+                        @endforeach
+                    </datalist>
                 </div>
                 <button type="submit" class="btn btn-primary">Search</button>
                 @if($companySearch !== '')

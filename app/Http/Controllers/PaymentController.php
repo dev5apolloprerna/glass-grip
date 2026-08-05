@@ -20,6 +20,12 @@ class PaymentController extends Controller
     {
        
         $companySearch = $request->string('company')->trim()->limit(100)->toString();
+
+        $companySuggestions = Customer::query()
+            ->whereHas('invoices')
+            ->orderBy('name')
+            ->pluck('name');
+
         $customers = Customer::query()
             ->whereHas('invoices')
             ->when($companySearch !== '', function ($query) use ($companySearch) {
@@ -52,7 +58,7 @@ class PaymentController extends Controller
             })
             ->latest('payment_date')->latest('id')->limit(20)->get();
 
-        return view('payments.index', compact('customers', 'totals', 'recentPayments', 'companySearch'));
+        return view('payments.index', compact('customers', 'totals', 'recentPayments', 'companySearch', 'companySuggestions'));
     }
 
     public function storeCustomerPayment(Request $request)

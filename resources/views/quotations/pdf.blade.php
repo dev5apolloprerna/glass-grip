@@ -1,92 +1,120 @@
 <!DOCTYPE html>
-<html>
 
+<html lang="en">
 <head>
-	<meta charset="UTF-8">
-	<title>{{ $quotation->quotation_number }}</title>
-		<style>{!! file_get_contents(public_path('css/invoice-pdf.css')) !!}</style>
+	     <meta charset="UTF-8">
+    <title>{{ $quotation->quotation_number }}</title>
+    <style>
+        :root { --green:#4f8128; --green-dark:#2f6d16; --green-deep:#285e10; --ink:#141b21; --paper:#fff; }
+        * { box-sizing: border-box; }
+        html, body { margin:0; padding:0; background:#fff; color:#111; font-family: DejaVu Sans, Arial, Helvetica, sans-serif; font-size:10.3px; }
+        table { width:100%; border-collapse:collapse; border-spacing:0; }
+        .quotation-page { width:182mm; min-height:276mm; padding:13mm 14mm 8mm; background:#ffffff; overflow:hidden; }
+        .header-table { table-layout:fixed; }
+        .header-table td { text-align:left; }
+        .logo-cell { width:39%; }
+        .logo-cell img { display:block; width:68mm; max-height:28mm; object-fit:contain; }
+        .address-cell { width:31%; border-left:1px solid #555; border-right:1px solid #555; padding:2mm 5mm; line-height:1.65; font-size:10.5px; }
+        .contact-cell { width:30%; padding-left:5mm; line-height:1.65; font-size:10.5px; }
+        .icon-row td { padding:0; vertical-align:top; }
+        .icon { width:28px; color:#4f8128; font-size:18px; font-weight:700; text-align:left; }
+        .contact-divider { border-top:1px solid #4f8128; margin:1.5mm 0 1mm; }
+        .tax-table td { padding:0; font-size:12.2px; }
+        .tax-label { width:34%; font-size:14px !important; font-weight:700; }
+        .tax-colon { width:8%; text-align:center; }
+        .accent-table { margin-top:4.5mm; table-layout:fixed; }
+        .accent-green { width:15mm; height:2.1mm; background:#4f8128; }
+        .accent-slant { width:3mm; height:2.1mm; border-left:3mm solid #4f8128; border-top:2.1mm solid transparent; }
+        .accent-dark { height:2.1mm; background:#141b21; }
+        .quotation-top-layout { table-layout:fixed; margin-top:5mm; margin-bottom:4mm; }
+        .quotation-title-cell { width:52%; padding-right:6mm; vertical-align:middle; }
+        .quotation-title { font-size:30px; font-weight:800; color:#0d1720; letter-spacing:.8px; line-height:1; text-transform:uppercase; text-shadow:1.4px 1.4px 0 rgba(0,0,0,.16); }
+        .quotation-meta-cell { width:48%; border-left:1px solid #6f756b; padding-left:6mm; vertical-align:top; }
+        .quote-meta { table-layout:fixed; margin-top:.5mm; }
+        .quote-meta td { height:10mm; vertical-align:middle; font-size:13.5px; }
+        .quote-meta .label { width:34%; font-weight:700; }
+        .quote-meta .colon { width:7%; text-align:center; }
+        .quote-meta .line { border-bottom:1px solid #333; }
+        .party-meta-layout { table-layout:fixed; border-collapse:separate !important; border-spacing:0 !important; margin-bottom:4.2mm; }
+        .party-meta-layout > tbody > tr > td { vertical-align:top; }
+        .bill-cell { width:50%; padding-right:2mm !important; border:0 !important; vertical-align:top; }
+        .ship-cell { width:50%; padding-left:2mm !important; border:0 !important; vertical-align:top; }
+        .party-box { width:100%; height:45mm; border:1px solid #8ea37d; border-radius:2.6mm; border-collapse:separate !important; border-spacing:0 !important; overflow:hidden !important; background:#fff; }
+        .party-box > tbody > tr > td { padding:0 !important; border:0 !important; vertical-align:top; }
+        .party-tag { width:auto; border-collapse:separate !important; border-spacing:0 !important; margin:0; }
+        .party-tag-text { height:9mm; padding:0 4.5mm; color:#fff; background:#285e10; font-size:12px; font-weight:800; letter-spacing:.3px; white-space:nowrap; vertical-align:middle; }
+        .party-tag-slant { width:5mm; height:9mm; border-left:5mm solid #285e10; border-bottom:9mm solid transparent; }
+        .party-fields-wrap { padding:3.2mm 3.6mm 3mm 3.6mm !important; }
+        .party-fields { table-layout:fixed; border-collapse:collapse; margin:0; }
+        .party-fields td { height:5.2mm; vertical-align:middle; font-size:11.8px; }
+        .party-fields .label { width:34%; white-space:nowrap; }
+        .party-fields .colon { width:6%; text-align:center; }
+        .party-fields .line { border-bottom:1px dotted #7f857a; }
+        .product-table { table-layout:fixed; border-collapse:separate; border-spacing:0; border:1px solid #71905e; border-radius:2.5mm; overflow:hidden; }
+        .product-table th { height:8mm; padding:1mm; color:#fff; background:#36751b; border-right:1px solid rgba(255,255,255,.5); font-size:14.8px; line-height:1.25; font-weight:700; text-align:center; vertical-align:middle; }
+        .product-table th:last-child, .product-table td:last-child { border-right:0; }
+        .product-table td { height:5.9mm; border-top:1px solid #c7cdc4; border-right:1px solid #c7cdc4; padding:.7mm 1.4mm; font-size:12.5px; vertical-align:middle; }
+        .center { text-align:center; } .right { text-align:right; }
+        .bottom-layout { table-layout:fixed; margin-top:2.2mm; }
+        .terms-cell { width:55%; padding:1.5mm 5mm 0 1mm; vertical-align:top; }
+        .totals-cell { width:45%; vertical-align:top; }
+        .terms-heading { padding-left:2mm; font-size:15px; font-weight:800; }
+        .terms-list td { height:4.7mm; font-size:12.8px; vertical-align:middle; }
+        .term-number { width:7mm; text-align:right; padding-right:2mm; }
+        .term-line { display:inline-block; width:45mm; border-bottom:1px solid #777; }
+        .totals-table { border-collapse:separate; border-spacing:0; border:1px solid #799169; border-radius:2.4mm; overflow:hidden; }
+        .totals-table td { height:6mm; border-bottom:1px solid #aeb8a8; border-right:1px solid #aeb8a8; padding:0 3mm; font-size:13.2px; vertical-align:middle; }
+        .totals-table tr:last-child td { border-bottom:0; }
+        .total-label { width:51%; } .rupee { width:11%; text-align:center; border-right:none !important; } .total-value { width:38%; text-align:right; }
+        .grand-total .total-label { color:#fff; background:#2f6d16; font-weight:800; font-size:11px; }
+        .grand-total .rupee, .grand-total .total-value { font-weight:800; }
+        .signature-table { table-layout:fixed; margin-top:4mm; }
+        .signature-spacer { width:55%; } .signature-cell { width:45%; text-align:center; vertical-align:top; }
+        .company-sign { font-size:13.8px; margin-bottom:1.5mm; } .company-sign strong { color:#2f6d16; font-size:13.8px; }
+        .signature-image-wrap { width:52mm; height:18mm; margin:0 auto 1mm; text-align:center; overflow:hidden; }
+        .signature-image { display:block; width:100%; height:100%; object-fit:contain; object-position:center bottom; }
+        .sign-line { width:45mm; margin:0 auto 2mm; border-top:1px solid #222; } .authorized { font-size:13.5px; }
+        @page { size:A4 portrait; margin:0; }
+    </style>
 </head>
 
+@php
+    $customer = $quotation->customer;
+    $designPath = base_path('design');
+    $logoPath = $designPath.'/glass-grip-logo.png';
+    $signaturePath = $designPath.'/signature.png';
+    $shipName = $quotation->shipping_address_different ? $customer->name : $customer->name;
+    $shipAddress = $quotation->shipping_address_different ? $quotation->shipping_address : $customer->address;
+    $shipAddress2 = $quotation->shipping_address_different ? $quotation->shipping_address_line_2 : $customer->address_line_2;
+    $shipCity = $quotation->shipping_address_different ? $quotation->shipping_city : $customer->city;
+    $shipState = $quotation->shipping_address_different ? $quotation->shipping_state : $customer->state;
+    $shipPincode = $quotation->shipping_address_different ? $quotation->shipping_pincode : $customer->pincode;
+@endphp
+
 <body>
-	<div class="invoice-box">
-		<div class="invoice-header">
-			<div class="left">
-				<img class="company-logo" src="{{ public_path('images/glass-grip-logo.png') }}" alt="Glass Grip">
-				<div class="company-name">{{ config('invoice.company_name') }}</div><div class="company-tagline">Quality products. Reliable service.</div>
-				<div class="company-address">{{ config('invoice.address') }},<br>{{ config('invoice.city') }}, {{ config('invoice.state') }} - {{ config('invoice.postcode') }}.</div>
-			</div>
-			<div class="right">
-				<div class="invoice-title">QUOTATION</div>
-				<div class="document-number">{{ $quotation->quotation_number }}</div>
-			</div>
-		</div>
-		<table class="meta-table">
-			<tr>
-				<td class="label">Bill To</td>
-				<td><strong>{{ $quotation->customer->name }}</strong><br>{{ $quotation->customer->address }}<br>{{
-					$quotation->customer->address_line_2 }}<br>{{ $quotation->customer->city }}, {{
-					$quotation->customer->state }} - {{ $quotation->customer->pincode }}</td>
-				<td class="label">Ship To</td>
-				<td>{{ $quotation->shipping_address }}<br>{{ $quotation->shipping_address_line_2 }}<br>{{
-					$quotation->shipping_city }}, {{ $quotation->shipping_state }} - {{ $quotation->shipping_pincode }}
-				</td>
-			</tr>
-			<tr>
-				<td class="label">Date</td>
-				<td>{{ $quotation->quotation_date->format('d M Y') }}</td>
-				<td></td>
-				<td></td>
-			</tr>
-		</table>
-		<table class="items">
-			<thead>
-				<tr>
-					<th>#</th>
-					<th>Product / Description</th>
-					<th>HSN</th>
-					<th>Size</th>
-					<th>Rolls</th>
-					<th>Total Mtr</th>
-					<th>Rate</th>
-					<th>Amount</th>
-				</tr>
-			</thead>
-			<tbody>@foreach($quotation->items as $i=>$item)<tr>
-					<td>{{ $i+1 }}</td>
-					<td>{{ $item->product->name }}<br><small>{{ $item->product->description }}</small></td>
-					<td>{{ $item->product->hsn_code }}</td>
-					<td>{{ number_format($item->size_mtr,2) }}</td>
-					<td>{{ $item->no_of_rolls }}</td>
-					<td>{{ number_format($item->total_mtr,2) }}</td>
-					<td>{{ number_format($item->price_per_mtr,2) }}</td>
-					<td>{{ number_format($item->amount,2) }}</td>
-				</tr>@endforeach</tbody>
-		</table>
-		<table class="totals">
-			<tr>
-				<td>Sub Total</td>
-				<td class="text-right">Rs. {{ number_format($quotation->sub_total,2) }}</td>
-			</tr>@if($quotation->discount_amount>0)<tr>
-				<td>Discount</td>
-				<td class="text-right">- Rs. {{ number_format($quotation->discount_amount,2) }}</td>
-			</tr>@endif @if($quotation->cgst_amount>0)<tr>
-				<td>CGST (9%)</td>
-				<td class="text-right">Rs. {{ number_format($quotation->cgst_amount,2) }}</td>
-			</tr>
-			<tr>
-				<td>SGST (9%)</td>
-				<td class="text-right">Rs. {{ number_format($quotation->sgst_amount,2) }}</td>
-			</tr>@elseif($quotation->igst_amount>0)<tr>
-				<td>IGST (18%)</td>
-				<td class="text-right">Rs. {{ number_format($quotation->igst_amount,2) }}</td>
-			</tr>@endif<tr class="grand">
-				<td>Net Amount</td>
-				<td class="text-right">Rs. {{ number_format($quotation->total_amount,2) }}</td>
-			</tr>
-		</table>
-		        <div class="footer-grid"><div class="footer-note">Please retain this document for your records.<br>This is a computer-generated document.</div><div class="signature"><div class="signature-space"></div><strong>Authorised Signatory</strong><br>For {{ config('invoice.company_name') }}</div></div>
-        <div class="bottom-bar">Thank you for your business</div>
-	</div>
+<div class="quotation-page">
+    <table class="header-table"><tr>
+        <td class="logo-cell"><img src="{{ $logoPath }}" alt="GlassGrip Masking Tapes Logo"></td>
+        <td class="address-cell">◆ <span style="font-size:13px;font-weight:500;">{{ config('invoice.address') }}<br>{{ config('invoice.city') }} - {{ config('invoice.postcode') }}<br>{{ config('invoice.state') }}, India.</span></td>
+        <td class="contact-cell">
+            <table class="icon-row"><tr><td class="icon">☎</td><td style="vertical-align:middle;font-size:15px;">{{ config('invoice.phone') ?: '+91 886647000' }}</td></tr><tr><td class="icon">✉</td><td style="vertical-align:middle;font-size:13px;">{{ config('invoice.email') ?: 'ankitgandhi8383@gmail.com' }}</td></tr></table>
+            <div class="contact-divider"></div>
+            <table class="tax-table"><tr><td class="tax-label">PAN</td><td class="tax-colon">:</td><td>{{ config('invoice.pan_number') ?: 'ALTPG0235F' }}</td></tr><tr><td class="tax-label">GST No.</td><td class="tax-colon">:</td><td>{{ config('invoice.gst_number') ?: '24ALTPG0235F2ZD' }}</td></tr></table>
+        </td>
+    </tr></table>
+    <table class="accent-table"><tr><td class="accent-green"></td><td class="accent-slant"></td><td class="accent-dark"></td></tr></table>
+    <table class="quotation-top-layout"><tr><td class="quotation-title-cell"><div class="quotation-title">QUOTATION</div></td><td class="quotation-meta-cell"><table class="quote-meta"><tr><td class="label">Quotation No.</td><td class="colon">:</td><td class="line">{{ $quotation->quotation_number }}</td></tr><tr><td class="label">Date</td><td class="colon">:</td><td class="line">{{ $quotation->quotation_date->format('d M Y') }}</td></tr></table></td></tr></table>
+    <table class="party-meta-layout"><tr>
+        <td class="bill-cell"><table class="party-box"><tr><td><table class="party-tag"><tr><td class="party-tag-text">BILL TO</td><td class="party-tag-slant"></td></tr></table><div class="party-fields-wrap"><table class="party-fields"><tr><td class="label">Company Name</td><td class="colon">:</td><td class="line"><strong>{{ $customer->name }}</strong></td></tr><tr><td class="label">Address</td><td class="colon">:</td><td class="line">{{ $customer->address }}</td></tr><tr><td></td><td></td><td class="line">{{ $customer->address_line_2 }}</td></tr><tr><td></td><td></td><td class="line">{{ $customer->city }}, {{ $customer->state }} - {{ $customer->pincode }}</td></tr><tr><td class="label">GST No.</td><td class="colon">:</td><td class="line">{{ $customer->gst_number ?: '-' }}</td></tr><tr><td class="label">State</td><td class="colon">:</td><td class="line">{{ $customer->state }}</td></tr></table></div></td></tr></table></td>
+        <td class="ship-cell"><table class="party-box"><tr><td><table class="party-tag"><tr><td class="party-tag-text">SHIP TO</td><td class="party-tag-slant"></td></tr></table><div class="party-fields-wrap"><table class="party-fields"><tr><td class="label">Company Name</td><td class="colon">:</td><td class="line"><strong>{{ $shipName }}</strong></td></tr><tr><td class="label">Address</td><td class="colon">:</td><td class="line">{{ $shipAddress }}</td></tr><tr><td></td><td></td><td class="line">{{ $shipAddress2 }}</td></tr><tr><td></td><td></td><td class="line">{{ $shipCity }}, {{ $shipState }} - {{ $shipPincode }}</td></tr><tr><td class="label">GST No.</td><td class="colon">:</td><td class="line">{{ $customer->gst_number ?: '-' }}</td></tr><tr><td class="label">State</td><td class="colon">:</td><td class="line">{{ $shipState }}</td></tr></table></div></td></tr></table></td>
+    </tr></table>
+    <table class="product-table"><colgroup><col style="width:5%"><col style="width:35%"><col style="width:12%"><col style="width:16.5%"><col style="width:15.5%"><col style="width:16%"></colgroup><thead><tr><th>Sr.</th><th>Description of Goods</th><th>HSN Code</th><th>Quantity (Rolls)</th><th>Rate (Per Pc)</th><th>Amount</th></tr></thead><tbody>
+        @foreach($quotation->items as $i => $item)<tr><td class="center">{{ $i + 1 }}</td><td>{{ $item->product->name }}<br><small>{{ $item->product->description }}</small></td><td class="center">{{ $item->product->hsn_code }}</td><td class="center">{{ $item->no_of_rolls }}</td><td class="right">{{ number_format($item->price_per_mtr, 2) }}</td><td class="right">{{ number_format($item->amount, 2) }}</td></tr>@endforeach
+        @for($i = $quotation->items->count(); $i < 10; $i++)<tr><td class="center">{{ $i + 1 }}</td><td></td><td></td><td></td><td></td><td></td></tr>@endfor
+    </tbody></table>
+    <table class="bottom-layout"><tr><td class="terms-cell"><table><tr><td style="width:9mm;"><span style="display:inline-block;width:8mm;height:8mm;line-height:8mm;border-radius:4mm;background:#4f8128;color:#fff;text-align:center;font-weight:700;">i</span></td><td class="terms-heading">Terms &amp; Conditions:</td></tr></table><table class="terms-list"><tr><td class="term-number">1.</td><td>This quotation is valid for 15 days from the date of issue.</td></tr><tr><td class="term-number">2.</td><td>Prices are subject to change without prior notice.</td></tr><tr><td class="term-number">3.</td><td>Payment Terms: <span class="term-line"></span></td></tr><tr><td class="term-number">4.</td><td>Delivery: <span class="term-line"></span></td></tr><tr><td class="term-number">5.</td><td>Subject to Ahmedabad Jurisdiction.</td></tr></table></td><td class="totals-cell"><table class="totals-table"><tr><td class="total-label">Sub Total</td><td class="rupee">₹</td><td class="total-value">{{ number_format($quotation->sub_total, 2) }}</td></tr>@if($quotation->discount_amount > 0)<tr><td class="total-label">Discount</td><td class="rupee">₹</td><td class="total-value">-{{ number_format($quotation->discount_amount, 2) }}</td></tr>@endif<tr><td class="total-label">CGST</td><td class="rupee">₹</td><td class="total-value">{{ number_format($quotation->cgst_amount, 2) }}</td></tr><tr><td class="total-label">SGST</td><td class="rupee">₹</td><td class="total-value">{{ number_format($quotation->sgst_amount, 2) }}</td></tr>@if($quotation->igst_amount > 0)<tr><td class="total-label">IGST</td><td class="rupee">₹</td><td class="total-value">{{ number_format($quotation->igst_amount, 2) }}</td></tr>@endif<tr><td class="total-label">Round Off</td><td class="rupee">₹</td><td class="total-value">{{ number_format($quotation->round_off, 2) }}</td></tr><tr class="grand-total"><td class="total-label">Grand Total</td><td class="rupee">₹</td><td class="total-value">{{ number_format($quotation->total_amount, 2) }}</td></tr></table></td></tr></table>
+    <table class="signature-table"><tr><td class="signature-spacer"></td><td class="signature-cell"><div class="company-sign">For <strong>GlassGrip Masking Tapes</strong></div><div class="signature-image-wrap"><img src="{{ $signaturePath }}" class="signature-image" alt="Authorised Signature"></div><div class="sign-line"></div><div class="authorized">Authorised Signatory</div></td></tr></table>
+</div>
 </body>
 
 </html>
