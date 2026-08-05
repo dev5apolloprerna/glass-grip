@@ -93,15 +93,36 @@ class QuotationController extends Controller
 
         $totalPaid = $quotation->invoice?->totalPaid();
         $balanceDue = $quotation->invoice?->balanceDue();
+        $previousDue = $quotation->customer->currentBalance();
+        
+        if ($quotation->invoice) {
+            $previousDue -= (float) $quotation->invoice->total_amount;
+        }
 
-        return view('quotations.show', compact('quotation', 'totalPaid', 'balanceDue'));
+        return view('quotations.show', compact('quotation', 'totalPaid', 'balanceDue', 'previousDue'));
     }
     public function download(Quotation $quotation)
-    {
-        $this->authorizeAccess($quotation);
-        $quotation->load(['items.product', 'customer', 'user']);
-        return Pdf::loadView('quotations.pdf', compact('quotation'))->setPaper('a4')->download($quotation->quotation_number . '.pdf');
-    }
+{
+    $this->authorizeAccess($quotation);
+
+    $quotation->loadMissing([
+        'items.product',
+        'customer',
+        'user',
+    ]);
+
+    $pdf = Pdf::loadView('quotations.pdf', compact('quotation'))
+        ->setPaper('a4', 'portrait')
+        ->setOption('defaultFont', 'DejaVu Sans')
+        ->setOption('isHtml5ParserEnabled', true)
+        ->setOption('isFontSubsettingEnabled', true)
+        ->setOption('dpi', 96)
+        ->setWarnings(false);
+
+    return $pdf->stream(
+        $quotation->quotation_number . '.pdf'
+    );
+}
 
     public function markSent(Quotation $quotation)
     {

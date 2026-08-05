@@ -120,24 +120,24 @@
 
             @if($invoice->cgst_amount > 0)
             <tr class="summary-row">
-                <td></td><td>CGST @ 9%</td><td></td><td>9%</td>
-                <td class="text-right">{{ number_format($invoice->cgst_amount, 2) }}</td>
-            </tr>
-            <tr class="summary-row">
-                <td></td><td>CGST @ 9%</td><td></td><td>9%</td>
-                <td class="text-right">{{ number_format($invoice->sgst_amount, 2) }}</td>
+                <td></td><td></td><td></td><td></td>
+                <td class="text-right">
+                    CGST @ 9% {{ number_format($invoice->cgst_amount, 2) }}<br>
+                    SGST @ 9% {{ number_format($invoice->sgst_amount, 2) }}<br>
+                    <strong>{{ number_format($invoice->cgst_amount + $invoice->sgst_amount, 2) }}</strong>
+                </td>
             </tr>
             @elseif($invoice->igst_amount > 0)
             <tr class="summary-row">
-                <td></td><td>IGST @ 18%</td><td></td><td>18%</td>
-                <td class="text-right">{{ number_format($invoice->igst_amount, 2) }}</td>
+                <td></td><td></td><td></td><td></td>
+                <td class="text-right">IGST @ 18% {{ number_format($invoice->igst_amount, 2) }}</td>
             </tr>
             @endif
 
             @if($invoice->round_off != 0)
             <tr class="summary-row">
-                <td></td><td>Round Off</td><td></td><td></td>
-                <td class="text-right">{{ $invoice->round_off > 0 ? '+' : '' }} {{ number_format($invoice->round_off, 2) }}</td>
+                <td></td><td></td><td></td><td></td>
+                <td class="text-right">Round Off {{ $invoice->round_off > 0 ? '+' : '' }} {{ number_format($invoice->round_off, 2) }}</td>
             </tr>
             @endif
 
