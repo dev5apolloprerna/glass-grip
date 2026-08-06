@@ -31,6 +31,7 @@ class PaymentCollectionTest extends TestCase
         $response->assertRedirect(route('payment-collections.index'));
         $this->assertDatabaseHas('payments', ['customer_id' => $customer->id, 'invoice_id' => null, 'employee_id' => null, 'amount' => 200, 'receipt_number' => 'PR-000001']);
         $this->assertSame(300.0, $customer->fresh()->currentBalance());
+        
     }
 
     public function test_invalid_customer_collection_is_rejected(): void
