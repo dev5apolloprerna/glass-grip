@@ -10,6 +10,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use NumberFormatter;
 
 class PaymentController extends Controller
 {
@@ -33,6 +34,7 @@ class PaymentController extends Controller
             })
             ->withSum('invoices as billed_amount', 'total_amount')
             ->withSum('payments as collected_amount', 'amount')
+            ->with('latestCompanyPayment')
             ->orderBy('name')
             ->get();
 
@@ -49,16 +51,7 @@ class PaymentController extends Controller
             'due' => $customers->sum('due_amount'),
         ];
 
-        $recentPayments = Payment::with('customer')
-            ->whereNull('invoice_id')
-            ->when($companySearch !== '', function ($query) use ($companySearch) {
-                $query->whereHas('customer', function ($customerQuery) use ($companySearch) {
-                    $customerQuery->where('name', 'like', '%'.$companySearch.'%');
-                });
-            })
-            ->latest('payment_date')->latest('id')->limit(20)->get();
-
-        return view('payments.index', compact('customers', 'totals', 'recentPayments', 'companySearch', 'companySuggestions'));
+        return view('payments.index', compact('customers', 'totals', 'companySearch', 'companySuggestions'));
     }
 
     public function storeCustomerPayment(Request $request)
@@ -115,8 +108,10 @@ class PaymentController extends Controller
     {
         abort_unless($payment->invoice_id === null && $payment->receipt_number, 404);
         $payment->load(['customer', 'enteredBy']);
+        $amountInWords = $this->amountInWords((float) $payment->amount);
+        $dueAmount = max(0, $payment->customer->currentBalance());
 
-        return Pdf::loadView('payments.receipt', compact('payment'))->setPaper('a5')->download($payment->receipt_number.'.pdf');
+        return Pdf::loadView('payments.receipt', compact('payment', 'amountInWords', 'dueAmount'))->setPaper('a5')->download($payment->receipt_number.'.pdf');
     }
 
     public function store(Request $request, Invoice $invoice)
@@ -194,5 +189,19 @@ class PaymentController extends Controller
         if (! $user->isSuperAdmin() && $invoice->quotation->user_id !== $user->id) {
             abort(403, 'You do not have permission to record payments for this invoice.');
         }
+    }
+    private function amountInWords(float $amount): string
+    {
+        $totalPaise = (int) round($amount * 100);
+        $rupees = intdiv($totalPaise, 100);
+        $paise = $totalPaise % 100;
+        $formatter = new NumberFormatter('en_IN', NumberFormatter::SPELLOUT);
+        $words = 'Indian Rupees '.ucfirst($formatter->format($rupees));
+
+        if ($paise > 0) {
+            $words .= ' and '.ucfirst($formatter->format($paise)).' Paise';
+        }
+
+        return $words.' Only';
     }
 }

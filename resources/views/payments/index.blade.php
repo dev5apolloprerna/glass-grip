@@ -49,6 +49,9 @@
                                 @else
                                     <span class="pill pill-approved">Paid</span>
                                 @endif
+                                 @if($customer->latestCompanyPayment)
+                                    <a class="btn btn-secondary btn-sm" href="{{ route('payment-collections.receipt', $customer->latestCompanyPayment) }}">Download Receipt</a>
+                                @endif
                             </td>
                         </tr>
                     @empty
@@ -59,17 +62,7 @@
         </div>
     </div>
 
-    <div class="card">
-        <div class="card-header"><h3>Recent Company Payments</h3></div>
-        <div class="table-wrap"><table class="table">
-            <thead><tr><th>Receipt</th><th>Date</th><th>Customer</th><th>Method</th><th class="text-right">Amount</th><th></th></tr></thead>
-            <tbody>@forelse($recentPayments as $payment)<tr>
-                <td class="font-mono">{{ $payment->receipt_number }}</td><td>{{ $payment->payment_date->format('d M Y') }}</td><td>{{ $payment->customer->name }}</td>
-                <td>{{ ucwords(str_replace('_', ' ', $payment->payment_method)) }}</td><td class="text-right">&#8377;{{ number_format($payment->amount, 2) }}</td>
-                <td><a class="btn btn-secondary btn-sm" href="{{ route('payment-collections.receipt', $payment) }}">Download Receipt</a></td>
-            </tr>@empty<tr><td colspan="6" class="text-center text-muted">No customer payments collected yet.</td></tr>@endforelse</tbody>
-        </table></div>
-    </div>
+    
 
     <div class="modal" id="collectModal" aria-hidden="true"><div class="modal-backdrop"></div><div class="modal-dialog">
         <form method="POST" action="{{ route('payment-collections.store') }}">@csrf

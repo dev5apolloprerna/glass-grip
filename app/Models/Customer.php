@@ -45,9 +45,16 @@ class Customer extends Model
     {
         return $this->hasMany(Invoice::class);
     }
-public function payments()
+    public function payments()
     {
         return $this->hasMany(Payment::class);
+    }
+        public function latestCompanyPayment()
+    {
+        return $this->hasOne(Payment::class)
+            ->whereNull('invoice_id')
+            ->whereNotNull('receipt_number')
+            ->latestOfMany();
     }
     public function ledgers()
     {
