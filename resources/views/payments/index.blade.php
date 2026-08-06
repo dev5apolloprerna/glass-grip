@@ -49,9 +49,9 @@
                                 @else
                                     <span class="pill pill-approved">Paid</span>
                                 @endif
-                                 @if($customer->latestCompanyPayment)
+                                 <!-- @if($customer->latestCompanyPayment) -->
                                     <a class="btn btn-secondary btn-sm" href="{{ route('payment-collections.receipt', $customer->latestCompanyPayment) }}">Download Receipt</a>
-                                @endif
+                                <!-- @endif -->
                             </td>
                         </tr>
                     @empty

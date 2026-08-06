@@ -11,7 +11,7 @@
             </div>
             <div class="quotation-actions">
                 <div class="quotation-actions-group quotation-actions-workflow">
-                    <a href="{{ route('quotations.download', $quotation) }}" class="btn btn-secondary btn-sm">Quotation PDF</a>
+                    <a href="{{ route('quotations.download', $quotation) }}" target="_blank" class="btn btn-secondary btn-sm">Quotation PDF</a>
                 @if($quotation->isEditable())
                     <form method="POST" action="{{ route('quotations.mark-sent', $quotation) }}" style="display:inline" data-confirm="Mark this quotation as sent? It can no longer be edited.">
                         @csrf
@@ -36,9 +36,9 @@
                     @endif
                 @if(!$quotation->isEditable() && $quotation->invoice)
                     <a href="{{ route('invoices.show', $quotation->invoice) }}" class="btn btn-primary btn-sm">View Invoice</a>
-                    <a href="{{ route('invoices.download', $quotation->invoice) }}" class="btn btn-secondary btn-sm">Download PDF</a>
+                    <a href="{{ route('invoices.download', $quotation->invoice) }}" target="_blank" class="btn btn-secondary btn-sm">Download PDF</a>
                     @if($quotation->invoice->deliveryChallan)
-                        <a href="{{ route('delivery-challans.show', $quotation->invoice->deliveryChallan) }}" class="btn btn-secondary btn-sm">Delivery Challan</a>
+                        <a href="{{ route('delivery-challans.show', $quotation->invoice->deliveryChallan) }}" class="btn btn-secondary btn-sm" target="_blank">Delivery Challan</a>
                     @else
                         <form method="POST" action="{{ route('delivery-challans.store', $quotation->invoice) }}" style="display:inline;">
                             @csrf

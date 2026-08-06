@@ -7,10 +7,10 @@
         :root { --green:#4f8128; --green-dark:#2f6d16; --green-deep:#285e10; --ink:#141b21; --paper:#fff; }
         * { box-sizing: border-box; }
         html, 
-        body { margin:0; padding:0; background:#fff; color:#111; font-family: DejaVu Sans, Arial, Helvetica, sans-serif; font-size:9.6px; }
+        body { margin:0; padding:0; background:#fff; color:#111; font-family: DejaVu Sans, Arial, Helvetica,, sans-serif; font-size:9.6px; }
         table { width:100%; border-collapse:collapse; border-spacing:0; }
         .receipt-page { width:128mm; min-height:192mm; padding:9mm 9mm 7mm; background:#ffffff; overflow:hidden; }
-
+ .amount-words{text-align:center;margin:8px 0 0}.due{text-align:center;margin-top:8px;font-weight:bold}.
         /* ================= HEADER (compact, stacked for A5 width) ================= */
         .header-table { table-layout:fixed; }
         .header-table td { vertical-align:top; }
@@ -123,8 +123,8 @@
 
     {{-- AMOUNT RECEIVED --}}
     <div class="amount-box">
-        <p class="amount-words">{{ $amountInWords }}</p>
-        <div class="due">Due Amount: &#8377;{{ number_format($dueAmount, 2) }}</div>
+            <p class="amount-words">{{ $amountInWords }}</p>
+            <div class="due">Due Amount: &#8377;{{ number_format($dueAmount, 2) }}</div>
         <div class="amount-label">AMOUNT RECEIVED</div>
         <div class="amount-value">₹ {{ number_format($payment->amount, 2) }}</div>
     </div>

@@ -26,7 +26,7 @@ class InvoiceController extends Controller
 
         $pdf = Pdf::loadView('invoices.pdf', compact('invoice'))->setPaper('a4');
 
-        return $pdf->download($invoice->invoice_number . '.pdf');
+        return $pdf->stream($invoice->invoice_number . '.pdf');
     }
         public function markSent(Invoice $invoice)
     {

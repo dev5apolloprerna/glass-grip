@@ -45,7 +45,7 @@
         .ship-cell { width:50%; padding-left:2mm !important; border:0 !important; vertical-align:top; }
         .party-box { width:100%; border:1px solid #8ea37d; border-radius:2.6mm; border-collapse:separate !important; border-spacing:0 !important; overflow:hidden !important; background:#fff; }
         .party-box > tbody > tr > td { padding:0 !important; border:0 !important; vertical-align:top; }
-        .party-tag-bar { height:7.5mm; line-height:7.5mm; padding:0 4.5mm; color:#fff; background:#285e10; font-size:12px; font-weight:800; letter-spacing:.3px; white-space:nowrap; overflow:hidden; }
+        .party-tag-bar { vertical-align:middle;height:7.5mm; line-height:7.5mm; padding:0 4.5mm; color:#fff; background:#285e10; font-size:12px; font-weight:800; letter-spacing:.3px; white-space:nowrap; overflow:hidden; }
         .party-fields-wrap { padding:1.8mm 3.6mm 1.6mm 3.6mm !important; }
         .party-fields { table-layout:fixed; border-collapse:collapse; margin:0; }
         .party-fields td { height:4.4mm; vertical-align:middle; font-size:10.6px; }
@@ -54,7 +54,7 @@
         .party-fields .line { border-bottom:1px dotted #7f857a; padding-left:1.5mm; }
 
         /* ================= ITEMS + SUMMARY (single continuous grid, green header) ================= */
-        .items-table { table-layout:fixed; border-collapse:separate; border-spacing:0; border:1px solid #71905e; border-radius:2.5mm; overflow:hidden; margin-bottom:2mm; }
+        .items-table {  border-collapse:separate; border-spacing:0; border:1px solid #71905e; border-radius:2.5mm; overflow:hidden; margin-bottom:2mm; }
         .items-table th { height:6.5mm; padding:1mm; color:#fff; background:#36751b; border-right:1px solid rgba(255,255,255,.5); font-size:12.5px; line-height:1.25; font-weight:700; text-align:center; vertical-align:middle; }
         .items-table th:last-child, .items-table td:last-child { border-right:0; }
         .items-table td { border-top:1px solid #c7cdc4; border-right:1px solid #c7cdc4; padding:1.1mm 1.6mm; font-size:10.6px; vertical-align:top; }
@@ -101,7 +101,7 @@
     {{-- COMPANY HEADER --}}
     <table class="header-table"><tr>
         <td class="logo-cell"><img src="{{ $logoPath }}" alt="GlassGrip Masking Tapes Logo"></td>
-        <td class="address-cell">◆ <span style="font-size:13px;font-weight:500;">{{ config('invoice.address') }}<br>{{ config('invoice.city') }} - {{ config('invoice.postcode') }}<br>{{ config('invoice.state') }}, India.</span></td>
+        <td class="address-cell">◆ <span style="font-size:12px;">{{ config('invoice.address') }}<br>{{ config('invoice.city') }} - {{ config('invoice.postcode') }}<br>{{ config('invoice.state') }}, India.</span></td>
         <td class="contact-cell">
             <table class="icon-row"><tr><td class="icon">☎</td><td style="vertical-align:middle;font-size:15px;">{{ config('invoice.phone') ?: '+91 886647000' }}</td></tr><tr><td class="icon">✉</td><td style="vertical-align:middle;font-size:13px;">{{ config('invoice.email') ?: 'ankitgandhi8383@gmail.com' }}</td></tr></table>
             <div class="contact-divider"></div>
@@ -191,6 +191,13 @@
                     <td class="text-right">{{ number_format($item->amount, 2) }}</td>
                 </tr>
             @endforeach
+                    @for($i = $invoice->quotation->items->count(); $i < 10; $i++)<tr>
+                    <td class="text-center">{{ $i + 1 }}</td>
+                    <td class="text-right"></td>
+                    <td class="text-right"></td>
+                    <td class="text-right"></td>
+                    <td class="text-right"></td>
+                    </tr>@endfor
 
             {{-- Sub Total --}}
             <tr class="summary-row">
@@ -265,7 +272,7 @@
         </tr>
     </table>
 
-    <div class="footer-note">This is a computer-generated Tax Invoice</div>
+    <!-- <div class="footer-note">This is a computer-generated Tax Invoice</div> -->
 </div>
 </body>
 </html>
