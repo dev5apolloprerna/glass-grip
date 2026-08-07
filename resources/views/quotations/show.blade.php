@@ -45,7 +45,6 @@
                             <button type="submit" class="btn btn-secondary btn-sm">Generate Delivery Challan</button>
                         </form>
                     @endif
-                    <a href="{{ route('invoices.show', $quotation->invoice) }}#collect-payment" class="btn btn-success btn-sm">Collect Payment</a>
                 @endif
 
                 @if($quotation->status === 'approved' && !$quotation->invoice)

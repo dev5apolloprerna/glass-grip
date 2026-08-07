@@ -81,6 +81,8 @@
     $designPath = base_path('design');
     $logoPath = $designPath.'/glass-grip-logo.png';
     $signaturePath = $designPath.'/signature.png';
+    $quotationNumber = data_get($invoice, 'quotation.quotation_number');
+    $referenceNumber = data_get($invoice, 'reference_no') ?: data_get($invoice, 'reference_number');
 @endphp
 
 <body>
@@ -105,7 +107,11 @@
             <table class="doc-meta">
                 <tr><td class="label">Challan No.</td><td class="colon">:</td><td class="line"><strong>{{ $deliveryChallan->challan_number }}</strong></td></tr>
                 <tr><td class="label">Date</td><td class="colon">:</td><td class="line"><strong>{{ $deliveryChallan->challan_date->format('d M Y') }}</strong></td></tr>
-                <tr><td class="label">Against Invoice</td><td class="colon">:</td><td class="line">{{ $invoice->invoice_number }}</td></tr>
+                <tr>
+                    <td class="label">{{ $quotationNumber ? 'Quotation No.' : ($referenceNumber ? 'Reference No.' : 'Quotation No.') }}</td>
+                    <td class="colon">:</td>
+                    <td class="line">{{ $quotationNumber ?: $referenceNumber ?: '-' }}</td>
+                </tr>
             </table>
         </td>
     </tr></table>
@@ -116,7 +122,8 @@
         <div class="party-fields-wrap">
             <table class="party-fields">
                 <tr><td class="label">Company Name</td><td class="colon">:</td><td class="line"><strong>{{ $customer->name }}</strong></td></tr>
-                <tr><td class="label">Address</td><td class="colon">:</td><td class="line">{{ collect([$invoice->shipping_address, $invoice->shipping_address_line_2])->filter()->implode(', ') }}</td></tr>
+                <tr><td class="label">Address</td><td class="colon">:</td>
+                    <td class="line">{{ collect([$invoice->shipping_address, $invoice->shipping_address_line_2])->filter()->implode(', ') }}</td></tr>
                 <tr><td class="label">City/State</td><td class="colon">:</td><td class="line">{{ $invoice->shipping_city }}, {{ $invoice->shipping_state }} - {{ $invoice->shipping_pincode }}</td></tr>
             </table>
         </div>

@@ -106,8 +106,8 @@
     <div class="accent-bar"><div class="accent-green"></div><div class="accent-dark"></div></div>
     <table class="quotation-top-layout"><tr><td class="quotation-title-cell"><div class="quotation-title">QUOTATION</div></td><td class="quotation-meta-cell"><table class="quote-meta"><tr><td class="label">Quotation No.</td><td class="colon">:</td><td class="line">{{ $quotation->quotation_number }}</td></tr><tr><td class="label">Date</td><td class="colon">:</td><td class="line">{{ $quotation->quotation_date->format('d M Y') }}</td></tr></table></td></tr></table>
     <table class="party-meta-layout"><tr>
-        <td class="bill-cell"><table class="party-box"><tr><td><div class="party-tag-bar">BILL TO</div><div class="party-fields-wrap"><table class="party-fields"><tr><td class="label">Company Name</td><td class="colon">:</td><td class="line"><strong>{{ $customer->name }}</strong></td></tr><tr><td class="label">Address</td><td class="colon">:</td><td class="line">{{ $customer->address }}</td></tr><tr><td></td><td></td><td class="line">{{ $customer->address_line_2 }}</td></tr><tr><td></td><td></td><td class="line">{{ $customer->city }}, {{ $customer->state }} - {{ $customer->pincode }}</td></tr><tr><td class="label">GST No.</td><td class="colon">:</td><td class="line">{{ $customer->gst_number ?: '-' }}</td></tr><tr><td class="label">State</td><td class="colon">:</td><td class="line">{{ $customer->state }}</td></tr></table></div></td></tr></table></td>
-        <td class="ship-cell"><table class="party-box"><tr><td><div class="party-tag-bar">SHIP TO</div><div class="party-fields-wrap"><table class="party-fields"><tr><td class="label">Company Name</td><td class="colon">:</td><td class="line"><strong>{{ $shipName }}</strong></td></tr><tr><td class="label">Address</td><td class="colon">:</td><td class="line">{{ $shipAddress }}</td></tr><tr><td></td><td></td><td class="line">{{ $shipAddress2 }}</td></tr><tr><td></td><td></td><td class="line">{{ $shipCity }}, {{ $shipState }} - {{ $shipPincode }}</td></tr><tr><td class="label">GST No.</td><td class="colon">:</td><td class="line">{{ $customer->gst_number ?: '-' }}</td></tr><tr><td class="label">State</td><td class="colon">:</td><td class="line">{{ $shipState }}</td></tr></table></div></td></tr></table></td>
+        <td class="bill-cell"><table class="party-box"><tr><td><div class="party-tag-bar">BILL TO</div><div class="party-fields-wrap"><table class="party-fields"><tr><td class="label">Company Name</td><td class="colon">:</td><td class="line"><strong>{{ $customer->name }}</strong></td></tr><tr><td class="label">Address Line 1</td><td class="colon">:</td><td class="line">{{ $customer->address ?: '-' }}</td></tr><tr><td class="label">Address Line 2</td><td class="colon">:</td><td class="line">{{ $customer->address_line_2 ?: '-' }}</td></tr><tr><td class="label">City</td><td class="colon">:</td><td class="line">{{ $customer->city ?: '-' }}</td></tr><tr><td class="label">State</td><td class="colon">:</td><td class="line">{{ $customer->state ?: '-' }}</td></tr><tr><td class="label">Pincode</td><td class="colon">:</td><td class="line">{{ $customer->pincode ?: '-' }}</td></tr></table></div></td></tr></table></td>
+        <td class="ship-cell"><table class="party-box"><tr><td><div class="party-tag-bar">SHIP TO</div><div class="party-fields-wrap"><table class="party-fields"><tr><td class="label">Company Name</td><td class="colon">:</td><td class="line"><strong>{{ $shipName }}</strong></td></tr><tr><td class="label">Address Line 1</td><td class="colon">:</td><td class="line">{{ $shipAddress ?: '-' }}</td></tr><tr><td class="label">Address Line 2</td><td class="colon">:</td><td class="line">{{ $shipAddress2 ?: '-' }}</td></tr><tr><td class="label">City</td><td class="colon">:</td><td class="line">{{ $shipCity ?: '-' }}</td></tr><tr><td class="label">State</td><td class="colon">:</td><td class="line">{{ $shipState ?: '-' }}</td></tr><tr><td class="label">Pincode</td><td class="colon">:</td><td class="line">{{ $shipPincode ?: '-' }}</td></tr></table></div></td></tr></table></td>
     </tr></table>
     <table class="product-table">
             <colgroup>
@@ -164,15 +164,7 @@
                     </tr>
                     <tr>
                         <td class="term-number">3.</td>
-                        <td>Payment Terms: <span class="term-line"></span></td>
-                    </tr>
-                    <tr>
-                        <td class="term-number">4.</td>
-                        <td>Delivery: <span class="term-line"></span></td>
-                    </tr>
-                    <tr>
-                        <td class="term-number">5.</td>
-                        <td>Subject to Ahmedabad Jurisdiction.</td>
+                        <td>Ahmedabad City.</td>
                     </tr>
                 </table>
             </div>

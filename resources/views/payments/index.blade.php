@@ -3,6 +3,23 @@
 @section('title', 'Payment Collection')
 
 @section('content')
+    <style>
+        .payment-action-column,
+        .receipt-action-column {
+            width: 150px;
+            min-width: 150px;
+            text-align: center !important;
+            white-space: nowrap;
+        }
+
+        .payment-action-column .btn,
+        .receipt-action-column .btn {
+            display: inline-block;
+            min-width: 140px;
+            text-align: center;
+        }
+    </style>
+
     <div class="card">
                 <div class="card-header"><h3>Company-wise Payment Collection</h3></div>
     </div>
@@ -34,7 +51,7 @@
         </div>
         <div class="table-wrap">
             <table class="table">
-                <thead><tr><th>Company</th><th>Contact</th><th class="text-right">Receivable</th><th class="text-right">Collected</th><th class="text-right">Pending</th><th></th></tr></thead>
+                <thead><tr><th>Company</th><th>Contact</th><th class="text-right">Receivable</th><th class="text-right">Collected</th><th class="text-right">Pending</th><th class="payment-action-column">Payment</th><th class="receipt-action-column">Receipt</th></tr></thead>
                 <tbody>
                     @forelse($customers as $customer)
                         <tr>
@@ -43,19 +60,40 @@
                             <td class="text-right">&#8377;{{ number_format($customer->billed_amount, 2) }}</td>
                             <td class="text-right text-success">&#8377;{{ number_format($customer->collected_amount, 2) }}</td>
                             <td class="text-right"><strong>&#8377;{{ number_format($customer->due_amount, 2) }}</strong></td>
-                            <td class="text-right">
+                            <td class="payment-action-column">
                                 @if($customer->due_amount > 0)
-                                    <button type="button" class="btn btn-primary btn-sm js-collect" data-customer="{{ $customer->id }}" data-name="{{ $customer->name }}" data-due="{{ number_format($customer->due_amount, 2, '.', '') }}">Collect Payment</button>
+                                    <button
+                                        type="button"
+                                        class="btn btn-primary btn-sm js-collect"
+                                        data-customer="{{ $customer->id }}"
+                                        data-name="{{ $customer->name }}"
+                                        data-due="{{ number_format($customer->due_amount, 2, '.', '') }}"
+                                    >
+                                        Collect Payment
+                                    </button>
                                 @else
                                     <span class="pill pill-approved">Paid</span>
                                 @endif
-                                 <!-- @if($customer->latestCompanyPayment) -->
-                                    <a class="btn btn-secondary btn-sm" href="{{ route('payment-collections.receipt', $customer->latestCompanyPayment) }}">Download Receipt</a>
-                                <!-- @endif -->
+                            </td>
+                            <td class="receipt-action-column">
+                                {{-- Full or partial payment થયેલું હોય તો receipt દેખાડવી --}}
+                                @if($customer->collected_amount > 0 && $customer->latestCompanyPayment)
+                                    <a
+                                        class="btn btn-secondary btn-sm"
+                                        href="{{ route(
+                                            'payment-collections.receipt',
+                                            $customer->latestCompanyPayment->id
+                                        ) }}"
+                                    >
+                                        Download Receipt
+                                    </a>
+                                @else
+                                    <span class="text-muted">-</span>
+                                @endif
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="6" class="text-center text-muted">{{ $companySearch !== '' ? 'No companies match your search.' : 'No invoiced companies found.' }}</td></tr>
+                        <tr><td colspan="7" class="text-center text-muted">{{ $companySearch !== '' ? 'No companies match your search.' : 'No invoiced companies found.' }}</td></tr>
                     @endforelse
                 </tbody>
             </table>

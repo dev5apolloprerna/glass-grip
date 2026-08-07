@@ -93,6 +93,11 @@
     $designPath = base_path('design');
     $logoPath = $designPath.'/glass-grip-logo.png';
     $signaturePath = $designPath.'/signature.png';
+    $shippingAddress = data_get($invoice, 'shipping_address') ?: data_get($invoice, 'quotation.shipping_address') ?: $customer->address;
+    $shippingAddressLine2 = data_get($invoice, 'shipping_address_line_2') ?: data_get($invoice, 'quotation.shipping_address_line_2') ?: $customer->address_line_2;
+    $shippingCity = data_get($invoice, 'shipping_city') ?: data_get($invoice, 'quotation.shipping_city') ?: $customer->city;
+    $shippingState = data_get($invoice, 'shipping_state') ?: data_get($invoice, 'quotation.shipping_state') ?: $customer->state;
+    $shippingPincode = data_get($invoice, 'shipping_pincode') ?: data_get($invoice, 'quotation.shipping_pincode') ?: $customer->pincode;
 @endphp
 
 <body>
@@ -117,10 +122,8 @@
             <table class="doc-meta">
                 <tr><td class="label">Invoice No.</td><td class="colon">:</td><td class="line"><strong>{{ $invoice->invoice_number }}</strong></td></tr>
                 <tr><td class="label">Dated</td><td class="colon">:</td><td class="line"><strong>{{ $invoice->invoice_date->format('d M Y') }}</strong></td></tr>
-                <tr><td class="label">Delivery Note</td><td class="colon">:</td><td class="line">{{ $invoice->delivery_note ?? '-' }}</td></tr>
-                <tr><td class="label">Mode/Terms of Payment</td><td class="colon">:</td><td class="line">{{ $invoice->payment_terms ?? '-' }}</td></tr>
-                <tr><td class="label">Reference No.</td><td class="colon">:</td><td class="line">-</td></tr>
-                <tr><td class="label">Other Reference(s)</td><td class="colon">:</td><td class="line">{{ $invoice->other_reference ?? '-' }}</td></tr>
+                <tr><td class="label">Reference No.</td><td class="colon">:</td><td class="line">{{ data_get($invoice, 'reference_no') ?: data_get($invoice, 'reference_number') ?: data_get($invoice, 'quotation.quotation_number') ?: '-' }}</td></tr>
+
             </table>
         </td>
     </tr></table>
@@ -133,14 +136,11 @@
                 <div class="party-fields-wrap">
                     <table class="party-fields">
                         <tr><td class="label">Company Name</td><td class="colon">:</td><td class="line"><strong>{{ $customer->name }}</strong></td></tr>
-                        <tr><td class="label">Address</td><td class="colon">:</td><td class="line">{{ collect([$customer->address, $customer->address_line_2])->filter()->implode(', ') }}</td></tr>
-                        <tr><td class="label">City/State</td><td class="colon">:</td><td class="line">{{ $customer->city }}, {{ $customer->state }} - {{ $customer->pincode }}</td></tr>
-                        @if($customer->gst_number)
-                        <tr><td class="label">GST No.</td><td class="colon">:</td><td class="line">{{ $customer->gst_number }}</td></tr>
-                        @endif
-                        @if($customer->phone)
-                        <tr><td class="label">Mob No.</td><td class="colon">:</td><td class="line">{{ $customer->phone }}</td></tr>
-                        @endif
+                        <tr><td class="label">Address Line 1</td><td class="colon">:</td><td class="line">{{ $customer->address ?: '-' }}</td></tr>
+                        <tr><td class="label">Address Line 2</td><td class="colon">:</td><td class="line">{{ $customer->address_line_2 ?: '-' }}</td></tr>
+                        <tr><td class="label">City</td><td class="colon">:</td><td class="line">{{ $customer->city ?: '-' }}</td></tr>
+                        <tr><td class="label">State</td><td class="colon">:</td><td class="line">{{ $customer->state ?: '-' }}</td></tr>
+                        <tr><td class="label">Pincode</td><td class="colon">:</td><td class="line">{{ $customer->pincode ?: '-' }}</td></tr>
                     </table>
                 </div>
             </td></tr></table>
@@ -150,13 +150,12 @@
                 <div class="party-tag-bar">DESPATCH DETAILS</div>
                 <div class="party-fields-wrap">
                     <table class="party-fields">
-                        <tr><td class="label">Buyer's Order No.</td><td class="colon">:</td><td class="line">{{ $invoice->buyer_order_no ?? '-' }}</td></tr>
-                        <tr><td class="label">Dated</td><td class="colon">:</td><td class="line">{{ $invoice->buyer_order_date ?? '-' }}</td></tr>
-                        <tr><td class="label">Despatch Doc. No.</td><td class="colon">:</td><td class="line">{{ $invoice->despatch_doc_no ?? '-' }}</td></tr>
-                        <tr><td class="label">Dated</td><td class="colon">:</td><td class="line">{{ $invoice->despatch_doc_date ?? '-' }}</td></tr>
-                        <tr><td class="label">Despatched Through</td><td class="colon">:</td><td class="line">{{ $invoice->despatched_through ?? '-' }}</td></tr>
-                        <tr><td class="label">Destination</td><td class="colon">:</td><td class="line">{{ $invoice->shipping_city ?? '-' }}</td></tr>
-                        <tr><td class="label">Terms of Delivery</td><td class="colon">:</td><td class="line">{{ $invoice->terms_of_delivery ?? '-' }}</td></tr>
+                        <tr><td class="label">Company Name</td><td class="colon">:</td><td class="line"><strong>{{ $customer->name }}</strong></td></tr>
+                        <tr><td class="label">Address Line 1</td><td class="colon">:</td><td class="line">{{ $shippingAddress ?: '-' }}</td></tr>
+                        <tr><td class="label">Address Line 2</td><td class="colon">:</td><td class="line">{{ $shippingAddressLine2 ?: '-' }}</td></tr>
+                        <tr><td class="label">City</td><td class="colon">:</td><td class="line">{{ $shippingCity ?: '-' }}</td></tr>
+                        <tr><td class="label">State</td><td class="colon">:</td><td class="line">{{ $shippingState ?: '-' }}</td></tr>
+                        <tr><td class="label">Pincode</td><td class="colon">:</td><td class="line">{{ $shippingPincode ?: '-' }}</td></tr>
                     </table>
                 </div>
             </td></tr></table>
@@ -172,8 +171,9 @@
             <tr>
                 <th>Sr No.</th>
                 <th style="text-align:left;padding-left:2.5mm;">Description of Goods</th>
-                <th>No. of Rolls</th>
-                <th>Per Mtr Rate</th>
+                <th>HSN</th>
+                <th>No. of <br>Rolls</th>
+                <th>Per Mtr<br> Rate</th>
                 <th>Total Amount</th>
             </tr>
         </thead>
@@ -182,10 +182,11 @@
                 <tr>
                     <td class="text-center">{{ $i + 1 }}</td>
                     <td>
-                        <strong>{{ $item->product->name }}</strong>
+                        <strong>{{ $item->product->name }} - Size: {{ number_format($item->size_mtr, 2) }} Mtr </strong>
                         @if($item->product->description)<small>{{ $item->product->description }}</small>@endif
-                        <small>HSN: {{ $item->product->hsn_code }} &nbsp;|&nbsp; Size: {{ number_format($item->size_mtr, 2) }} Mtr &nbsp;|&nbsp; Total Mtr: {{ number_format($item->total_mtr, 2) }} Mtr</small>
+
                     </td>
+                    <td class="text-right">{{ $item->product->hsn_code }}</td>
                     <td class="text-right">{{ $item->no_of_rolls }}</td>
                     <td class="text-right">{{ number_format($item->price_per_mtr, 2) }}</td>
                     <td class="text-right">{{ number_format($item->amount, 2) }}</td>
@@ -197,12 +198,13 @@
                     <td class="text-right"></td>
                     <td class="text-right"></td>
                     <td class="text-right"></td>
+                    <td class="text-right"></td>
                     </tr>@endfor
 
             {{-- Sub Total --}}
             <tr class="summary-row">
-                <td></td><td></td><td></td><td></td>
-                <td class="text-right">{{ number_format($invoice->sub_total, 2) }}</td>
+                <td></td><td></td><td></td><td></td><td></td>
+                <td class="text-right">Sub Total : {{ number_format($invoice->sub_total, 2) }}</td>
             </tr>
 
             @if($invoice->discount_amount > 0)
@@ -214,7 +216,7 @@
 
             @if($invoice->cgst_amount > 0)
             <tr class="summary-row">
-                <td></td><td></td><td></td><td></td>
+                <td></td><td></td><td></td><td></td><td></td>
                 <td class="text-right">
                     CGST @ 9% {{ number_format($invoice->cgst_amount, 2) }}<br>
                     SGST @ 9% {{ number_format($invoice->sgst_amount, 2) }}<br>
@@ -223,24 +225,24 @@
             </tr>
             @elseif($invoice->igst_amount > 0)
             <tr class="summary-row">
-                <td></td><td></td><td></td><td></td>
+                <td></td><td></td><td></td><td></td><td></td>
                 <td class="text-right">IGST @ 18% {{ number_format($invoice->igst_amount, 2) }}</td>
             </tr>
             @endif
 
             @if($invoice->round_off != 0)
             <tr class="summary-row">
-                <td></td><td></td><td></td><td></td>
+                <td></td><td></td><td></td><td></td><td></td>
                 <td class="text-right">Round Off {{ $invoice->round_off > 0 ? '+' : '' }} {{ number_format($invoice->round_off, 2) }}</td>
             </tr>
             @endif
 
             {{-- Total --}}
             <tr class="total-row">
-                <td colspan="2" class="text-right">Total</td>
+                <td colspan="3" class="text-right">Total</td>
                 <td class="text-right">{{ $invoice->quotation->items->sum('no_of_rolls') }}</td>
                 <td></td>
-                <td class="text-right">{{ number_format($invoice->total_amount, 2) }}</td>
+                <td class="text-right">Net Amount : {{ number_format($invoice->total_amount, 2) }}</td>
             </tr>
         </tbody>
     </table>
