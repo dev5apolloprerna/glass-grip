@@ -22,17 +22,25 @@ class PaymentController extends Controller
        
         $companySearch = $request->string('company')->trim()->limit(100)->toString();
 
+        // Only invoices that have actually been generated should be considered.
+        $generatedInvoice = function ($query) {
+            $query->whereNotNull('invoice_number')
+                ->where('invoice_number', '!=', '');
+        };
+
         $companySuggestions = Customer::query()
-            ->whereHas('invoices')
+            ->whereHas('invoices', $generatedInvoice)
             ->orderBy('name')
             ->pluck('name');
 
         $customers = Customer::query()
-            ->whereHas('invoices')
+            ->whereHas('invoices', $generatedInvoice)
             ->when($companySearch !== '', function ($query) use ($companySearch) {
                 $query->where('name', 'like', '%'.$companySearch.'%');
             })
-            ->withSum('invoices as billed_amount', 'total_amount')
+            ->withSum([
+                'invoices as billed_amount' => $generatedInvoice,
+            ], 'total_amount')
             ->withSum('payments as collected_amount', 'amount')
             ->with('latestCompanyPayment')
             ->orderBy('name')
@@ -66,25 +74,47 @@ class PaymentController extends Controller
             'notes' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        abort_unless(Invoice::where('customer_id', $data['customer_id'])->exists(), 422, 'This company does not have an invoice.');
+        abort_unless(
+            Invoice::where('customer_id', $data['customer_id'])
+                ->whereNotNull('invoice_number')
+                ->where('invoice_number', '!=', '')
+                ->exists(),
+            422,
+            'This company does not have a generated invoice.'
+        );
 
         $customer = Customer::findOrFail($data['customer_id']);
+        $invoice = Invoice::where('customer_id', $customer->id)
+            ->whereNotNull('invoice_number')
+            ->where('invoice_number', '!=', '')
+            ->latest('id')
+            ->firstOrFail();
+
         $amount = (float) $data['amount'];
         if ($amount > max(0, $customer->currentBalance()) + 0.01) {
             return back()->withErrors(['amount' => 'Amount cannot exceed the customer balance (₹'.number_format(max(0, $customer->currentBalance()), 2).').'])->withInput();
         }
 
-        $payment = DB::transaction(function () use ($data, $customer, $amount) {
-            $payment = Payment::create([
+        $payment = DB::transaction(function () use ($data, $customer, $invoice, $amount) {
+           $payment = Payment::create([
+                'invoice_id' => $invoice->id,
                 'customer_id' => $customer->id,
                 'payment_date' => $data['payment_date'],
                 'amount' => $amount,
-                'payment_method' => $data['payment_method'],
+                'payment_method' => $data['payment_method'] ?? null,
                 'reference_number' => $data['reference_number'] ?? null,
                 'notes' => $data['notes'] ?? null,
                 'entered_by' => Auth::id(),
             ]);
-            $payment->update(['receipt_number' => 'PR-'.str_pad((string) $payment->id, 6, '0', STR_PAD_LEFT)]);
+
+            $payment->update([
+                'receipt_number' => 'PR-'.str_pad(
+                    (string) $payment->id,
+                    6,
+                    '0',
+                    STR_PAD_LEFT
+                ),
+            ]);
 
             CustomerLedger::create([
                 'customer_id' => $customer->id,
@@ -106,12 +136,19 @@ class PaymentController extends Controller
 
     public function receipt(Payment $payment)
     {
-        abort_unless($payment->invoice_id === null && $payment->receipt_number, 404);
+        abort_unless($payment->receipt_number, 404);
+
         $payment->load(['customer', 'enteredBy']);
+
         $amountInWords = $this->amountInWords((float) $payment->amount);
         $dueAmount = max(0, $payment->customer->currentBalance());
 
-        return Pdf::loadView('payments.receipt', compact('payment', 'amountInWords', 'dueAmount'))->setPaper('a5')->download($payment->receipt_number.'.pdf');
+        return Pdf::loadView(
+            'payments.receipt',
+            compact('payment', 'amountInWords', 'dueAmount')
+        )
+            ->setPaper('a5')
+            ->download($payment->receipt_number.'.pdf');
     }
 
     public function store(Request $request, Invoice $invoice)
