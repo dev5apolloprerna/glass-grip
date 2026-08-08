@@ -72,6 +72,8 @@ Route::middleware('guest')->group(function () {
 
         Route::get('reports/customer-ledger', [ReportController::class, 'customerLedger'])->name('reports.customer-ledger');
         Route::get('reports/sales', [ReportController::class, 'sales'])->name('reports.sales');
+        Route::get('reports/customer-ledger/export/excel', [ReportController::class, 'customerLedgerExcel'])->name('reports.customer-ledger.excel');
+        Route::get('reports/customer-ledger/export/pdf', [ReportController::class, 'customerLedgerPdf'])->name('reports.customer-ledger.pdf');
     });
         Route::get('customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
 });
