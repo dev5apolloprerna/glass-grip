@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Customer;
 use App\Models\Invoice;
 use Illuminate\Http\Request;
+use App\Support\SimpleXlsxWriter;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ReportController extends Controller
 {
@@ -52,6 +54,94 @@ class ReportController extends Controller
     /**
      * Sales report - filter by date range (based on invoice date).
      */
+           public function customerLedgerExcel(Request $request)
+    {
+        $data = $this->ledgerExportData($request);
+        $filename = $this->ledgerFilename($data['selectedCustomer']->name, 'xlsx');
+        $rows = [
+            [['value' => 'Customer Ledger - '.$data['selectedCustomer']->name, 'style' => 1]],
+            [['value' => 'Period: '.($data['fromDate'] ?: 'Beginning').' to '.($data['toDate'] ?: 'Today'), 'style' => 2]],
+            [['value' => 'Opening Balance: ₹'.number_format($data['openingBalanceBeforeRange'], 2), 'style' => 2]],
+            array_map(fn ($heading) => ['value' => $heading, 'style' => 3], ['Date', 'Description', 'Type', 'Amount', 'Balance After', 'Entered By']),
+        ];
+
+        foreach ($data['ledgers'] as $entry) {
+            $rows[] = [
+                ['value' => $entry->transaction_date->format('d-m-Y'), 'style' => 4],
+                ['value' => $entry->description, 'style' => 4],
+                ['value' => ucfirst(str_replace('_', ' ', $entry->reference_type)), 'style' => 4],
+                ['value' => $entry->amount, 'style' => 5, 'type' => 'number'],
+                ['value' => $entry->balance_after, 'style' => 5, 'type' => 'number'],
+                ['value' => $entry->enteredBy->name ?? '-', 'style' => 4],
+            ];
+        }
+
+        $path = SimpleXlsxWriter::create($rows, 'Customer Ledger');
+
+        return response()->download(
+            $path,
+            $filename,
+            ['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
+        )->deleteFileAfterSend(true);
+    }
+
+    /**
+     * Download the filtered customer ledger as a PDF document.
+     */
+    public function customerLedgerPdf(Request $request)
+    {
+        $data = $this->ledgerExportData($request);
+        $filename = $this->ledgerFilename($data['selectedCustomer']->name, 'pdf');
+
+        return Pdf::loadView('reports.customer-ledger-pdf', $data)
+            ->setPaper('a4', 'landscape')
+            ->download($filename);
+    }
+
+    private function ledgerExportData(Request $request): array
+    {
+        $validated = $request->validate([
+            'customer_id' => ['required', 'integer', 'exists:customers,id'],
+            'from_date' => ['nullable', 'date'],
+            'to_date' => ['nullable', 'date', 'after_or_equal:from_date'],
+        ]);
+
+        $selectedCustomer = Customer::findOrFail($validated['customer_id']);
+        $fromDate = $validated['from_date'] ?? null;
+        $toDate = $validated['to_date'] ?? null;
+        $openingBalanceBeforeRange = (float) $selectedCustomer->opening_balance;
+
+        $query = $selectedCustomer->ledgers()
+            ->with('enteredBy')
+            ->orderBy('transaction_date')
+            ->orderBy('id');
+
+        if ($fromDate) {
+            $openingBalanceBeforeRange += (float) $selectedCustomer->ledgers()
+                ->where('transaction_date', '<', $fromDate)
+                ->sum('amount');
+            $query->where('transaction_date', '>=', $fromDate);
+        }
+
+        if ($toDate) {
+            $query->where('transaction_date', '<=', $toDate);
+        }
+
+        return [
+            'selectedCustomer' => $selectedCustomer,
+            'ledgers' => $query->get()->reject(fn ($entry) => $entry->reference_type === 'opening_balance'),
+            'fromDate' => $fromDate,
+            'toDate' => $toDate,
+            'openingBalanceBeforeRange' => $openingBalanceBeforeRange,
+        ];
+    }
+
+    private function ledgerFilename(string $customerName, string $extension): string
+    {
+        $safeName = preg_replace('/[^A-Za-z0-9_-]+/', '-', trim($customerName)) ?: 'customer';
+
+        return strtolower(trim($safeName, '-')).'-ledger-'.now()->format('Y-m-d').'.'.$extension;
+    }
     public function sales(Request $request)
     {
         $fromDate = $request->get('from_date');
