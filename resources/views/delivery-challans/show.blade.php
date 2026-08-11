@@ -4,7 +4,7 @@
 	<div class="card-header">
 		<h3>{{ $deliveryChallan->challan_number }}</h3>
 		<div><a class="btn btn-primary btn-sm"
-				href="{{ route('delivery-challans.download',$deliveryChallan) }}" target="_blank">Download PDF</a><a
+				href="{{ route('delivery-challans.download',$deliveryChallan) }}">Download PDF</a><a
 				class="btn btn-secondary btn-sm" href="{{ route('invoices.show',$deliveryChallan->invoice) }}">Back to
 				Invoice</a></div>
 	</div>

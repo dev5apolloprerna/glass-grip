@@ -106,7 +106,7 @@
     {{-- COMPANY HEADER --}}
     <table class="header-table"><tr>
         <td class="logo-cell"><img src="{{ $logoPath }}" alt="GlassGrip Masking Tapes Logo"></td>
-        <td class="address-cell">◆ <span style="font-size:12px;">{{ config('invoice.address') }}<br>{{ config('invoice.city') }} - {{ config('invoice.postcode') }}<br>{{ config('invoice.state') }}, India.</span></td>
+        <td class="address-cell"><span style="font-size:12px;">{!! config('invoice.address') !!}<br>{{ config('invoice.city') }} - {{ config('invoice.postcode') }}<br>{{ config('invoice.state') }}, India.</span></td>
         <td class="contact-cell">
             <table class="icon-row"><tr><td class="icon">☎</td><td style="vertical-align:middle;font-size:15px;">{{ config('invoice.phone') ?: '+91 886647000' }}</td></tr><tr><td class="icon">✉</td><td style="vertical-align:middle;font-size:13px;">{{ config('invoice.email') ?: 'ankitgandhi8383@gmail.com' }}</td></tr></table>
             <div class="contact-divider"></div>
@@ -141,6 +141,9 @@
                         <tr><td class="label">City</td><td class="colon">:</td><td class="line">{{ $customer->city ?: '-' }}</td></tr>
                         <tr><td class="label">State</td><td class="colon">:</td><td class="line">{{ $customer->state ?: '-' }}</td></tr>
                         <tr><td class="label">Pincode</td><td class="colon">:</td><td class="line">{{ $customer->pincode ?: '-' }}</td></tr>
+                        @if($invoice->quotation->gst_applicable)
+                        <tr><td class="label">GST No.</td><td class="colon">:</td><td class="line">{{ $customer->gst_number ?: '-' }}</td></tr>
+                        @endif
                     </table>
                 </div>
             </td></tr></table>
@@ -192,14 +195,7 @@
                     <td class="text-right">{{ number_format($item->amount, 2) }}</td>
                 </tr>
             @endforeach
-                    @for($i = $invoice->quotation->items->count(); $i < 10; $i++)<tr>
-                    <td class="text-center">{{ $i + 1 }}</td>
-                    <td class="text-right"></td>
-                    <td class="text-right"></td>
-                    <td class="text-right"></td>
-                    <td class="text-right"></td>
-                    <td class="text-right"></td>
-                    </tr>@endfor
+                   
 
             {{-- Sub Total --}}
             <tr class="summary-row">
@@ -252,7 +248,7 @@
         <colgroup><col style="width:64%"><col style="width:36%"></colgroup>
         <tr>
             <td class="fb-row1-left">
-                <div class="aw-label">AMOUNT CHARGEABLE (IN WORDS)</div>
+                <div class="aw-label">AMOUNT CHARGEABLE</div>
                 <div class="aw-value"><strong>Indian Rupees {{ number_format($invoice->total_amount, 2) }} Only</strong></div>
             </td>
             <td class="fb-row1-right">E. &amp; O.E.</td>

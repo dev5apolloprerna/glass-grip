@@ -7,9 +7,10 @@
         :root { --green:#4f8128; --green-dark:#2f6d16; --green-deep:#285e10; --ink:#141b21; --paper:#fff; }
         * { box-sizing: border-box; }
         html, 
-        body { margin:0; padding:0; background:#fff; color:#111; font-family: DejaVu Sans, Arial, Helvetica, sans-serif; font-size:9.6px; }
+        body { margin:0; padding:0; background:#fff; color:#111; font-family: DejaVu Sans, Arial, Helvetica,, sans-serif; font-size:9.6px; }
         table { width:100%; border-collapse:collapse; border-spacing:0; }
         .receipt-page { width:128mm; min-height:192mm; padding:9mm 9mm 7mm; background:#ffffff; overflow:hidden; }
+ .amount-words{text-align:center;margin:8px 0 0}.due{text-align:center;margin-top:8px;font-weight:bold}.
         /* ================= HEADER (compact, stacked for A5 width) ================= */
         .header-table { table-layout:fixed; }
         .header-table td { vertical-align:top; }
@@ -44,12 +45,10 @@
         .party-fields .colon { width:4%; text-align:center; }
         .party-fields .line { border-bottom:1px dotted #7f857a; padding-left:1.2mm; }
 
-        /* ================= PAYMENT SUMMARY ================= */
-        .payment-summary { width:100%; table-layout:fixed; border-collapse:separate; border-spacing:2mm 0; margin:0 0 2.2mm; }
-        .payment-summary td { width:50%; border:1px solid #799169; padding:0; text-align:center; vertical-align:middle; }
-        .payment-summary .summary-label { background:#f2f6ee; color:#2f6d16; font-weight:700; font-size:9.5px; padding:1.6mm; letter-spacing:.3px; }
-        .payment-summary .summary-value { background:#2f6d16; color:#fff; font-family:DejaVu Sans, sans-serif; font-weight:800; font-size:15px; padding:2.5mm 1mm; }
-        .payment-summary .due-value { background:#141b21; }
+        /* ================= AMOUNT BOX ================= */
+        .amount-box { border:1px solid #799169; border-radius:2.2mm; overflow:hidden; margin-bottom:2.2mm; }
+        .amount-box .amount-label { background:#f2f6ee; color:#2f6d16; font-weight:700; font-size:9.5px; text-align:center; padding:1.6mm; letter-spacing:.3px; }
+        .amount-box .amount-value { background:#2f6d16; color:#fff; font-weight:800; font-size:17px; text-align:center; padding:2.6mm; }
 
         /* ================= NOTES ================= */
         .notes-block { font-size:9px; color:#333; margin-bottom:2.2mm; line-height:1.5; }
@@ -65,9 +64,7 @@
         .sign-line { width:32mm; margin:0 auto 1mm; border-top:1px solid #222; } .authorized { font-size:9.3px; }
 
         /* ================= FOOTER ================= */
-        .amount-in-words { margin-top:2.5mm; padding:2mm 2.5mm; border:1px solid #cfd8c8; background:#f8faf6; font-size:9px; line-height:1.45; color:#333; }
-        .amount-in-words strong { color:#2f6d16; }
-        .footer-note { margin-top:2mm; padding-top:2mm; border-top:1px solid #ccc; text-align:center; font-size:8.3px; font-style:italic; color:#555; }
+        .footer-note { margin-top:3mm; padding-top:2mm; border-top:1px solid #ccc; text-align:center; font-size:8.3px; font-style:italic; color:#555; }
 
         @page { size:A5 portrait; margin:0; }
     </style>
@@ -114,11 +111,6 @@
         <div class="party-fields-wrap">
             <table class="party-fields">
                 <tr><td class="label">Company Name</td><td class="colon">:</td><td class="line"><strong>{{ $payment->customer->name }}</strong></td></tr>
-                <tr><td class="label">Address Line 1</td><td class="colon">:</td><td class="line">{{ $payment->customer->address ?: '-' }}</td></tr>
-                <tr><td class="label">Address Line 2</td><td class="colon">:</td><td class="line">{{ $payment->customer->address_line_2 ?: '-' }}</td></tr>
-                <tr><td class="label">City</td><td class="colon">:</td><td class="line">{{ $payment->customer->city ?: '-' }}</td></tr>
-                <tr><td class="label">State</td><td class="colon">:</td><td class="line">{{ $payment->customer->state ?: '-' }}</td></tr>
-                <tr><td class="label">Pincode</td><td class="colon">:</td><td class="line">{{ $payment->customer->pincode ?: '-' }}</td></tr>
                 @if($payment->customer->contact_person)
                 <tr><td class="label">Contact Person</td><td class="colon">:</td><td class="line">{{ $payment->customer->contact_person }}</td></tr>
                 @endif
@@ -129,17 +121,13 @@
         </div>
     </td></tr></table>
 
-    {{-- PAID AND DUE AMOUNT --}}
-    <table class="payment-summary"><tr>
-        <td>
-            <div class="summary-label">PAID AMOUNT</div>
-            <div class="summary-value">{{ number_format($payment->amount, 2) }}</div>
-        </td>
-        <td>
-            <div class="summary-label">DUE AMOUNT</div>
-            <div class="summary-value due-value">{{ number_format($dueAmount, 2) }}</div>
-        </td>
-    </tr></table>
+    {{-- AMOUNT RECEIVED --}}
+    <div class="amount-box">
+            <p class="amount-words">{{ $amountInWords }}</p>
+            <div class="due">Due Amount: &#8377;{{ number_format($dueAmount, 2) }}</div>
+        <div class="amount-label">AMOUNT RECEIVED</div>
+        <div class="amount-value">₹ {{ number_format($payment->amount, 2) }}</div>
+    </div>
 
     @if($payment->notes)
     <div class="notes-block"><strong>Notes:</strong> {{ $payment->notes }}</div>
@@ -156,7 +144,6 @@
         </td>
     </tr></table>
 
-    <div class="amount-in-words"><strong>Amount in Words:</strong> {{ $amountInWords }}</div>
     <div class="footer-note">This is a computer-generated company-wise payment receipt and does not require a signature.</div>
 </div>
 </body>
