@@ -390,15 +390,14 @@ class QuotationController extends Controller
      * Compute the gross sub total (before discount) from the raw submitted items array.
      * Used to validate that discount_amount never exceeds the sub total.
      */
-    private function calculateItemsSubTotal(array $items): float
+   private function calculateItemsSubTotal(array $items): float
     {
         $subTotal = 0.0;
 
         foreach ($items as $item) {
-            $sizeMtr = (float) ($item['size_mtr'] ?? 0);
             $noOfRolls = (int) ($item['no_of_rolls'] ?? 0);
             $pricePerMtr = (float) ($item['price_per_mtr'] ?? 0);
-            $subTotal += $sizeMtr * $noOfRolls * $pricePerMtr;
+            $subTotal += $noOfRolls * $pricePerMtr;   // was: $sizeMtr * $noOfRolls * $pricePerMtr
         }
 
         return $subTotal;
@@ -410,8 +409,9 @@ class QuotationController extends Controller
             $sizeMtr = (float) $item['size_mtr'];
             $noOfRolls = (int) $item['no_of_rolls'];
             $pricePerMtr = (float) $item['price_per_mtr'];
-            $totalMtr = $sizeMtr * $noOfRolls;
-            $amount = $totalMtr * $pricePerMtr;
+            $totalMtr = $sizeMtr * $noOfRolls;      // keep — still shown as "Total Mtr" in views/PDF
+            $amount = $noOfRolls * $pricePerMtr;    // was: $totalMtr * $pricePerMtr
+
 
             QuotationItem::create([
                 'quotation_id' => $quotation->id,

@@ -106,14 +106,14 @@ function initQuotationBuilder() {
     var amountEl = row.querySelector('.js-amount');
 
     function recalcRow() {
-      var size = parseFloat(sizeInput.value) || 0;
-      var rolls = parseInt(rollsInput.value, 10) || 0;
-      var price = parseFloat(priceInput.value) || 0;
-      var totalMtr = size * rolls;
-      var amount = totalMtr * price;
-      amountEl.textContent = formatMoney(amount);
-      recalcTotals();
-    }
+    var size = parseFloat(sizeInput.value) || 0;
+    var rolls = parseInt(rollsInput.value, 10) || 0;
+    var price = parseFloat(priceInput.value) || 0;
+    var totalMtr = size * rolls;
+    var amount = rolls * price;   // was: totalMtr * price
+    amountEl.textContent = formatMoney(amount);
+    recalcTotals();
+  }
 
     function fetchLastPrice() {
       var customerId = customerSelect ? customerSelect.value : null;
@@ -182,11 +182,10 @@ function initQuotationBuilder() {
   function recalcTotals() {
     var subTotal = 0;
     container.querySelectorAll('.item-row').forEach(function (row) {
-      var size = parseFloat(row.querySelector('.js-size').value) || 0;
       var rolls = parseInt(row.querySelector('.js-rolls').value, 10) || 0;
       var price = parseFloat(row.querySelector('.js-price').value) || 0;
-      subTotal += size * rolls * price;
-    });
+      subTotal += rolls * price;   // was: size * rolls * price
+  });
 
     var gstApplicable = isGstApplicable();
     var discount = discountInput ? (parseFloat(discountInput.value) || 0) : 0;
