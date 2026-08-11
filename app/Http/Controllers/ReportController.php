@@ -123,11 +123,44 @@ class ReportController extends Controller
     }
     public function sales(Request $request)
     {
+        return view('reports.sales', $this->salesReportData($request));
+    }
+
+    /**
+     * Download the filtered sales report as an Excel workbook.
+     */
+    public function salesExcel(Request $request)
+    {
+        $data = $this->salesReportData($request);
+        $filename = $this->salesFilename('xls');
+
+        return response()
+            ->view('reports.sales-excel', $data)
+            ->header('Content-Type', 'application/vnd.ms-excel; charset=UTF-8')
+            ->header('Content-Disposition', 'attachment; filename="'.$filename.'"');
+    }
+
+    /**
+     * Download the filtered sales report as a PDF document.
+     */
+    public function salesPdf(Request $request)
+    {
+        $data = $this->salesReportData($request);
+        $filename = $this->salesFilename('pdf');
+
+        return Pdf::loadView('reports.sales-pdf', $data)
+            ->setPaper('a4', 'landscape')
+            ->download($filename);
+    }
+
+    private function salesReportData(Request $request): array
+    {
         $fromDate = $request->get('from_date');
         $toDate = $request->get('to_date');
         $customerId = $request->get('customer_id');
 
         $customers = Customer::orderBy('name')->get();
+        $selectedCustomer = $customerId ? Customer::find($customerId) : null;
 
         $invoices = Invoice::with(['customer', 'quotation.user'])
             ->when($fromDate, fn ($q) => $q->where('invoice_date', '>=', $fromDate))
@@ -148,6 +181,11 @@ class ReportController extends Controller
         ];
         $totals['pre_gst_total'] = $totals['sub_total'] - $totals['discount_amount'];
 
-        return view('reports.sales', compact('invoices', 'totals', 'customers', 'fromDate', 'toDate', 'customerId'));
+        return compact('invoices', 'totals', 'customers', 'fromDate', 'toDate', 'customerId', 'selectedCustomer');
+    }
+
+    private function salesFilename(string $extension): string
+    {
+        return 'sales-report-'.now()->format('Y-m-d').'.'.$extension;
     }
 }
