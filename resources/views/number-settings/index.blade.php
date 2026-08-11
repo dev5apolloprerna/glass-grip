@@ -8,7 +8,7 @@
             <h3>Document Number Settings</h3>
         </div>
         <div class="card-body">
-            <p class="text-muted">Set the prefix, postfix and next running number used to auto-generate quotation numbers. Example: prefix <code>QUO-2026-</code> + number <code>1</code> padded to 4 digits = <code>QUO-2026-0001</code>.</p>
+            <p class="text-muted">Set the prefix, postfix and next running number used to auto-generate Quotation and Invoice numbers. Example: prefix <code>QUO-2026-</code> + number <code>1</code> padded to 4 digits = <code>QUO-2026-0001</code>.</p>
 
             @foreach($settings as $setting)
                 <form method="POST" action="{{ route('number-settings.update', $setting) }}" style="margin-bottom:24px; padding-bottom:20px; border-bottom:1px solid var(--color-border);">

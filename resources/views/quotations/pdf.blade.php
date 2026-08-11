@@ -54,7 +54,7 @@
         .center { text-align:center; } .right { text-align:right; }
         .bottom-layout { margin-top:1mm; }
         .terms-cell { float:left; width:55%; padding:1.5mm 5mm 0 1mm; }
-        .totals-cell { float:left; width:45%; }
+        .totals-cell { float:left; width:42%; }
         .bottom-clear { clear:both; }
         .terms-title-row { margin-bottom:1mm; height:8mm; font-size:0; }
         .terms-icon { display:inline-block; vertical-align:middle; width:8mm; height:8mm; line-height:8mm; border-radius:4mm; background:#4f8128; color:#fff; text-align:center; font-weight:700; font-size:12px; }
@@ -96,7 +96,7 @@
 <div class="quotation-page">
     <table class="header-table"><tr>
         <td class="logo-cell"><img src="{{ $logoPath }}" alt="GlassGrip Masking Tapes Logo"></td>
-        <td class="address-cell">◆ <span style="font-size:12px;">{{ config('invoice.address') }}<br>{{ config('invoice.city') }} - {{ config('invoice.postcode') }}<br>{{ config('invoice.state') }}, India.</span></td>
+        <td class="address-cell"><span style="font-size:12px;">{!! config('invoice.address') !!}<br>{{ config('invoice.city') }} - {{ config('invoice.postcode') }}<br>{{ config('invoice.state') }}, India.</span></td>
         <td class="contact-cell">
             <table class="icon-row"><tr><td class="icon">☎</td><td style="vertical-align:middle;font-size:15px;">{{ config('invoice.phone') ?: '+91 886647000' }}</td></tr><tr><td class="icon">✉</td><td style="vertical-align:middle;font-size:13px;">{{ config('invoice.email') ?: 'ankitgandhi8383@gmail.com' }}</td></tr></table>
             <div class="contact-divider"></div>
@@ -106,7 +106,7 @@
     <div class="accent-bar"><div class="accent-green"></div><div class="accent-dark"></div></div>
     <table class="quotation-top-layout"><tr><td class="quotation-title-cell"><div class="quotation-title">QUOTATION</div></td><td class="quotation-meta-cell"><table class="quote-meta"><tr><td class="label">Quotation No.</td><td class="colon">:</td><td class="line">{{ $quotation->quotation_number }}</td></tr><tr><td class="label">Date</td><td class="colon">:</td><td class="line">{{ $quotation->quotation_date->format('d M Y') }}</td></tr></table></td></tr></table>
     <table class="party-meta-layout"><tr>
-        <td class="bill-cell"><table class="party-box"><tr><td><div class="party-tag-bar">BILL TO</div><div class="party-fields-wrap"><table class="party-fields"><tr><td class="label">Company Name</td><td class="colon">:</td><td class="line"><strong>{{ $customer->name }}</strong></td></tr><tr><td class="label">Address Line 1</td><td class="colon">:</td><td class="line">{{ $customer->address ?: '-' }}</td></tr><tr><td class="label">Address Line 2</td><td class="colon">:</td><td class="line">{{ $customer->address_line_2 ?: '-' }}</td></tr><tr><td class="label">City</td><td class="colon">:</td><td class="line">{{ $customer->city ?: '-' }}</td></tr><tr><td class="label">State</td><td class="colon">:</td><td class="line">{{ $customer->state ?: '-' }}</td></tr><tr><td class="label">Pincode</td><td class="colon">:</td><td class="line">{{ $customer->pincode ?: '-' }}</td></tr></table></div></td></tr></table></td>
+        <td class="bill-cell"><table class="party-box"><tr><td><div class="party-tag-bar">BILL TO</div><div class="party-fields-wrap"><table class="party-fields"><tr><td class="label">Company Name</td><td class="colon">:</td><td class="line"><strong>{{ $customer->name }}</strong></td></tr><tr><td class="label">Address Line 1</td><td class="colon">:</td><td class="line">{{ $customer->address ?: '-' }}</td></tr><tr><td class="label">Address Line 2</td><td class="colon">:</td><td class="line">{{ $customer->address_line_2 ?: '-' }}</td></tr><tr><td class="label">City</td><td class="colon">:</td><td class="line">{{ $customer->city ?: '-' }}</td></tr><tr><td class="label">State</td><td class="colon">:</td><td class="line">{{ $customer->state ?: '-' }}</td></tr><tr><td class="label">Pincode</td><td class="colon">:</td><td class="line">{{ $customer->pincode ?: '-' }}</td></tr>@if($quotation->gst_applicable)<tr><td class="label">GST No.</td><td class="colon">:</td><td class="line">{{ $customer->gst_number ?: '-' }}</td></tr>@endif</table></div></td></tr></table></td>
         <td class="ship-cell"><table class="party-box"><tr><td><div class="party-tag-bar">SHIP TO</div><div class="party-fields-wrap"><table class="party-fields"><tr><td class="label">Company Name</td><td class="colon">:</td><td class="line"><strong>{{ $shipName }}</strong></td></tr><tr><td class="label">Address Line 1</td><td class="colon">:</td><td class="line">{{ $shipAddress ?: '-' }}</td></tr><tr><td class="label">Address Line 2</td><td class="colon">:</td><td class="line">{{ $shipAddress2 ?: '-' }}</td></tr><tr><td class="label">City</td><td class="colon">:</td><td class="line">{{ $shipCity ?: '-' }}</td></tr><tr><td class="label">State</td><td class="colon">:</td><td class="line">{{ $shipState ?: '-' }}</td></tr><tr><td class="label">Pincode</td><td class="colon">:</td><td class="line">{{ $shipPincode ?: '-' }}</td></tr></table></div></td></tr></table></td>
     </tr></table>
     <table class="product-table">
@@ -137,36 +137,14 @@
                     <td class="right">{{ number_format($item->price_per_mtr, 2) }}</td>
                     <td class="right">{{ number_format($item->amount, 2) }}</td>
                 </tr>@endforeach
-                @for($i = $quotation->items->count(); $i < 10; $i++)<tr>
-                    <td class="center">{{ $i + 1 }}</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    </tr>@endfor
+               
             </tbody>
-        </table>
+        </table><br>
     <div class="bottom-layout">
             <div class="terms-cell">
                 <div class="terms-title-row">
-                    <div class="terms-icon">i</div>
-                    <div class="terms-heading">Terms &amp; Conditions:</div>
                 </div>
-                <table class="terms-list">
-                    <tr>
-                        <td class="term-number">1.</td>
-                        <td>This quotation is valid for 15 days from the date of issue.</td>
-                    </tr>
-                    <tr>
-                        <td class="term-number">2.</td>
-                        <td>Prices are subject to change without prior notice.</td>
-                    </tr>
-                    <tr>
-                        <td class="term-number">3.</td>
-                        <td>Ahmedabad City.</td>
-                    </tr>
-                </table>
+               
             </div>
             <div class="totals-cell">
                 <table class="totals-table">

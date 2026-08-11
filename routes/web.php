@@ -77,3 +77,12 @@ Route::middleware('guest')->group(function () {
     });
         Route::get('customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
 });
+
+
+Route::get('/check-logo-path', function () {
+    return [
+        'public_path' => public_path(),
+        'logo_path' => public_path('images/glass-grip-logo.png'),
+        'exists' => file_exists(public_path('images/glass-grip-logo.png')),
+    ];
+});

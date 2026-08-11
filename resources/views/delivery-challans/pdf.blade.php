@@ -29,7 +29,7 @@
 
         /* ================= TITLE + CHALLAN META ================= */
         .doc-top-layout { table-layout:fixed; margin-top:2.5mm; margin-bottom:2mm; }
-        .doc-title-cell { width:44%; padding-right:4mm; vertical-align:top; padding-top:1mm; }
+        .doc-title-cell { width:44%; padding-right:4mm; vertical-align:top; padding-top:1mm;text-align:center; }
         .doc-title { font-size:24px; font-weight:800; color:#0d1720; letter-spacing:.6px; line-height:1; text-transform:uppercase; text-shadow:1.2px 1.2px 0 rgba(0,0,0,.16); }
         .doc-meta-cell { width:56%; border-left:1px solid #6f756b; padding-left:4mm; vertical-align:top; }
         .doc-meta { table-layout:fixed; }
@@ -44,10 +44,27 @@
         .party-tag-bar { height:7.5mm; line-height:7.5mm; padding:0 4.5mm; color:#fff; background:#285e10; font-size:12px; font-weight:800; letter-spacing:.3px; white-space:nowrap; overflow:hidden; }
         .party-fields-wrap { padding:2mm 4mm 1.8mm 4mm !important; }
         .party-fields { table-layout:fixed; border-collapse:collapse; margin:0; }
-        .party-fields td { height:4.8mm; vertical-align:middle; font-size:11px; }
-        .party-fields .label { width:22%; white-space:nowrap; }
-        .party-fields .colon { width:3%; text-align:center; }
-        .party-fields .line { border-bottom:1px dotted #7f857a; padding-left:1.5mm; }
+        .party-fields td {
+    height: 5.2mm;
+    vertical-align: middle;
+    font-size: 11px;
+    padding: 0.6mm 1mm;   /* add spacing */
+}
+
+.party-fields .label {
+    width: 34%;            /* increase label width */
+    white-space: nowrap;
+    font-weight: 600;
+}
+
+.party-fields .colon {
+    width: 6%;             /* more space for colon */
+    text-align: center;
+}
+        .party-fields .line {
+    border-bottom: 1px dotted #7f857a;
+    padding-left: 2.5mm;   /* more gap from colon */
+}
 
         /* ================= ITEMS TABLE (green header, rounded) ================= */
         .items-table { width:100%; border-collapse:separate; border-spacing:0; border:1px solid #71905e; border-radius:2.5mm; overflow:hidden; margin-bottom:2.5mm; }
@@ -91,7 +108,7 @@
     {{-- COMPANY HEADER --}}
     <table class="header-table"><tr>
         <td class="logo-cell"><img src="{{ $logoPath }}" alt="GlassGrip Masking Tapes Logo"></td>
-        <td class="address-cell">◆ <span style="font-size:12px;">{{ config('invoice.address') }}<br>{{ config('invoice.city') }} - {{ config('invoice.postcode') }}<br>{{ config('invoice.state') }}, India.</span></td>
+        <td class="address-cell"><span style="font-size:12px;">{!! config('invoice.address') !!}<br>{{ config('invoice.city') }} - {{ config('invoice.postcode') }}<br>{{ config('invoice.state') }}, India.</span></td>
         <td class="contact-cell">
             <table class="icon-row"><tr><td class="icon">☎</td><td style="vertical-align:middle;font-size:15px;">{{ config('invoice.phone') ?: '+91 886647000' }}</td></tr><tr><td class="icon">✉</td><td style="vertical-align:middle;font-size:13px;">{{ config('invoice.email') ?: 'ankitgandhi8383@gmail.com' }}</td></tr></table>
             <div class="contact-divider"></div>
@@ -103,31 +120,111 @@
     {{-- TITLE + CHALLAN META --}}
     <table class="doc-top-layout"><tr>
         <td class="doc-title-cell"><div class="doc-title">Delivery Challan</div></td>
-        <td class="doc-meta-cell">
-            <table class="doc-meta">
-                <tr><td class="label">Challan No.</td><td class="colon">:</td><td class="line"><strong>{{ $deliveryChallan->challan_number }}</strong></td></tr>
-                <tr><td class="label">Date</td><td class="colon">:</td><td class="line"><strong>{{ $deliveryChallan->challan_date->format('d M Y') }}</strong></td></tr>
-                <tr>
-                    <td class="label">{{ $quotationNumber ? 'Quotation No.' : ($referenceNumber ? 'Reference No.' : 'Quotation No.') }}</td>
-                    <td class="colon">:</td>
-                    <td class="line">{{ $quotationNumber ?: $referenceNumber ?: '-' }}</td>
-                </tr>
-            </table>
-        </td>
+        
     </tr></table>
 
     {{-- DELIVER TO --}}
-    <table class="party-box"><tr><td>
-        <div class="party-tag-bar">DELIVER TO</div>
-        <div class="party-fields-wrap">
-            <table class="party-fields">
-                <tr><td class="label">Company Name</td><td class="colon">:</td><td class="line"><strong>{{ $customer->name }}</strong></td></tr>
-                <tr><td class="label">Address</td><td class="colon">:</td>
-                    <td class="line">{{ collect([$invoice->shipping_address, $invoice->shipping_address_line_2])->filter()->implode(', ') }}</td></tr>
-                <tr><td class="label">City/State</td><td class="colon">:</td><td class="line">{{ $invoice->shipping_city }}, {{ $invoice->shipping_state }} - {{ $invoice->shipping_pincode }}</td></tr>
-            </table>
-        </div>
-    </td></tr></table>
+        {{-- DELIVER TO + CHALLAN DETAIL --}}
+    <table class="party-meta-layout" style="width:100%; table-layout:fixed; border-collapse:separate; border-spacing:0;">
+        <tr>
+
+            <!-- LEFT : DELIVER TO (50%) -->
+            <td class="bill-cell" style="width:50%; padding-right:2mm; vertical-align:top;">
+                <table class="party-box">
+                    <tr>
+                        <td>
+                            <div class="party-tag-bar">DELIVER TO</div>
+
+                            <div class="party-fields-wrap">
+                                <table class="party-fields">
+                                    <tr>
+                                        <td class="label">Company Name</td>
+                                        <td class="colon">:</td>
+                                        <td class="line">
+                                            <strong>{{ $customer->name }}</strong>
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td class="label">Address Line 1</td>
+                                        <td class="colon">:</td>
+                                        <td class="line">{{ $invoice->shipping_address ?: '-' }}</td>
+                                    </tr>
+
+                                    <tr>
+                                        <td class="label">Address Line 2</td>
+                                        <td class="colon">:</td>
+                                        <td class="line">{{ $invoice->shipping_address_line_2 ?: '-' }}</td>
+                                    </tr>
+
+                                    <tr>
+                                        <td class="label">City</td>
+                                        <td class="colon">:</td>
+                                        <td class="line">{{ $invoice->shipping_city ?: '-' }}</td>
+                                    </tr>
+
+                                    <tr>
+                                        <td class="label">State</td>
+                                        <td class="colon">:</td>
+                                        <td class="line">{{ $invoice->shipping_state ?: '-' }} - {{ $invoice->shipping_pincode ?: '-' }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+
+                        </td>
+                    </tr>
+                </table>
+            </td>
+
+            <!-- RIGHT : CHALLAN DETAIL (50%) -->
+            <td class="ship-cell" style="width:50%; padding-left:2mm; vertical-align:top;">
+
+                <table class="party-box">
+                    <tr>
+                        <td>
+
+                            <div class="party-tag-bar">CHALLAN DETAIL</div>
+
+                            <div class="party-fields-wrap">
+                                <table class="party-fields">
+
+                                    <tr>
+                                        <td class="label">Challan No.</td>
+                                        <td class="colon">:</td>
+                                        <td class="line">
+                                            <strong>{{ $deliveryChallan->challan_number }}</strong>
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td class="label">Date</td>
+                                        <td class="colon">:</td>
+                                        <td class="line">
+                                            <strong>{{ $deliveryChallan->challan_date->format('d M Y') }}</strong>
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td class="label">
+                                            {{ $quotationNumber ? 'Quotation No.' : ($referenceNumber ? 'Reference No.' : 'Quotation No.') }}
+                                        </td>
+                                        <td class="colon">:</td>
+                                        <td class="line">
+                                            {{ $quotationNumber ?: $referenceNumber ?: '-' }}
+                                        </td>
+                                    </tr>
+
+                                </table>
+                            </div>
+
+                        </td>
+                    </tr>
+                </table>
+
+            </td>
+
+        </tr>
+    </table>
 
     {{-- ITEMS --}}
     <table class="items-table">
@@ -158,14 +255,7 @@
                     <td>{{ number_format($item->total_mtr, 2) }}</td>
                 </tr>
             @endforeach
-            @for($i = $invoice->quotation->items->count(); $i < 10; $i++)<tr>
-                    <td >{{ $i + 1 }}</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    </tr>@endfor
+            
         </tbody>
     </table>
 

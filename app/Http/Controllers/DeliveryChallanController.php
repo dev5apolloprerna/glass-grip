@@ -27,7 +27,7 @@ class DeliveryChallanController extends Controller
     {
         $this->authorizeInvoice($deliveryChallan->invoice);
         $deliveryChallan->load('invoice.customer', 'invoice.quotation.items.product');
-        return Pdf::loadView('delivery-challans.pdf', compact('deliveryChallan'))->setPaper('a4')->download($deliveryChallan->challan_number . '.pdf');
+        return Pdf::loadView('delivery-challans.pdf', compact('deliveryChallan'))->setPaper('a4')->stream($deliveryChallan->challan_number . '.pdf');
     }
     private function authorizeInvoice(Invoice $invoice): void
     {

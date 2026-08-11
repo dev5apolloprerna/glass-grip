@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Customer;
 use App\Models\Invoice;
 use Illuminate\Http\Request;
-use App\Support\SimpleXlsxWriter;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class ReportController extends Controller
@@ -54,35 +53,15 @@ class ReportController extends Controller
     /**
      * Sales report - filter by date range (based on invoice date).
      */
-           public function customerLedgerExcel(Request $request)
+        public function customerLedgerExcel(Request $request)
     {
         $data = $this->ledgerExportData($request);
-        $filename = $this->ledgerFilename($data['selectedCustomer']->name, 'xlsx');
-        $rows = [
-            [['value' => 'Customer Ledger - '.$data['selectedCustomer']->name, 'style' => 1]],
-            [['value' => 'Period: '.($data['fromDate'] ?: 'Beginning').' to '.($data['toDate'] ?: 'Today'), 'style' => 2]],
-            [['value' => 'Opening Balance: ₹'.number_format($data['openingBalanceBeforeRange'], 2), 'style' => 2]],
-            array_map(fn ($heading) => ['value' => $heading, 'style' => 3], ['Date', 'Description', 'Type', 'Amount', 'Balance After', 'Entered By']),
-        ];
+        $filename = $this->ledgerFilename($data['selectedCustomer']->name, 'xls');
 
-        foreach ($data['ledgers'] as $entry) {
-            $rows[] = [
-                ['value' => $entry->transaction_date->format('d-m-Y'), 'style' => 4],
-                ['value' => $entry->description, 'style' => 4],
-                ['value' => ucfirst(str_replace('_', ' ', $entry->reference_type)), 'style' => 4],
-                ['value' => $entry->amount, 'style' => 5, 'type' => 'number'],
-                ['value' => $entry->balance_after, 'style' => 5, 'type' => 'number'],
-                ['value' => $entry->enteredBy->name ?? '-', 'style' => 4],
-            ];
-        }
-
-        $path = SimpleXlsxWriter::create($rows, 'Customer Ledger');
-
-        return response()->download(
-            $path,
-            $filename,
-            ['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
-        )->deleteFileAfterSend(true);
+        return response()
+            ->view('reports.customer-ledger-excel', $data)
+            ->header('Content-Type', 'application/vnd.ms-excel; charset=UTF-8')
+            ->header('Content-Disposition', 'attachment; filename="'.$filename.'"');
     }
 
     /**
