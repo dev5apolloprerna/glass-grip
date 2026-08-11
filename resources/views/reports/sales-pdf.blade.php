@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Ledger - {{ $selectedCustomer->name }}</title>
+    <title>Sales Report</title>
     <style>
         :root { --green:#4f8128; --green-dark:#2f6d16; --green-deep:#285e10; --ink:#141b21; --paper:#fff; }
         * { box-sizing: border-box; }
@@ -10,7 +10,7 @@
         table { width:100%; border-collapse:collapse; border-spacing:0; }
         .invoice-page { width:269mm; min-height:180mm; padding:10mm 12mm 8mm; background:#ffffff; overflow:hidden; }
 
-        /* ================= HEADER (same as invoice/quotation/challan) ================= */
+        /* ================= HEADER (same as invoice/quotation/challan/ledger) ================= */
         .header-table { table-layout:fixed; }
         .header-table td { text-align:left; }
         .logo-cell { width:34%; }
@@ -27,13 +27,13 @@
         .accent-green { float:left; width:15mm; height:2.1mm; background:#4f8128; }
         .accent-dark { overflow:hidden; height:2.1mm; background:#141b21; }
 
-        /* ================= TITLE + LEDGER META ================= */
+        /* ================= TITLE + REPORT META ================= */
         .doc-top-layout { table-layout:fixed; margin-top:2.5mm; margin-bottom:2mm; }
         .doc-title-cell { vertical-align:top; padding-top:1mm; text-align:center; }
         .doc-title { font-size:22px; font-weight:800; color:#0d1720; letter-spacing:.6px; line-height:1; text-transform:uppercase; text-shadow:1.2px 1.2px 0 rgba(0,0,0,.16); }
         .doc-subtitle { font-size:10.5px; color:#555; margin-top:1mm; }
 
-        /* ================= INFO BOXES (same pattern as Buyer/Ship To/Deliver To) ================= */
+        /* ================= INFO BOXES (same pattern as Buyer/Ship To/Account Details) ================= */
         .party-box { width:100%; border:1px solid #8ea37d; border-radius:2.6mm; border-collapse:separate !important; border-spacing:0 !important; overflow:hidden !important; background:#fff; margin-bottom:2.5mm; }
         .party-box > tbody > tr > td { padding:0 !important; border:0 !important; vertical-align:top; }
         .party-tag-bar { height:6.8mm; line-height:6.8mm; padding:0 4.5mm; color:#fff; background:#285e10; font-size:12px; font-weight:800; letter-spacing:.3px; white-space:nowrap; overflow:hidden; }
@@ -44,22 +44,18 @@
         .party-fields .colon { width:5%; text-align:center; }
         .party-fields .line { border-bottom:1px dotted #7f857a; padding-left:2.5mm; }
 
-        /* ================= LEDGER TABLE (green header, rounded) ================= */
+        /* ================= REPORT TABLE (green header, rounded) ================= */
         .items-table { width:100%; border-collapse:separate; border-spacing:0; border:1px solid #71905e; border-radius:2.5mm; overflow:hidden; margin-bottom:2.5mm; }
-        .items-table th { height:7mm; padding:1mm; color:#fff; background:#36751b; border-right:1px solid rgba(255,255,255,.5); font-size:11.5px; line-height:1.25; font-weight:700; text-align:center; vertical-align:middle; }
+        .items-table th { height:7mm; padding:1mm; color:#fff; background:#36751b; border-right:1px solid rgba(255,255,255,.5); font-size:10.8px; line-height:1.25; font-weight:700; text-align:center; vertical-align:middle; }
         .items-table th:last-child, .items-table td:last-child { border-right:0; }
-        .items-table td { border-top:1px solid #c7cdc4; border-right:1px solid #c7cdc4; padding:1.6mm; font-size:10.6px; vertical-align:top; text-align:center; }
+        .items-table td { border-top:1px solid #c7cdc4; border-right:1px solid #c7cdc4; padding:1.6mm; font-size:10px; vertical-align:top; text-align:center; }
         .items-table td.desc-cell { text-align:left; }
-        .items-table small { display:block; color:#555; font-size:9.6px; margin-top:.6mm; line-height:1.35; }
         .text-center { text-align:center; } .text-right { text-align:right; }
-        .row-opening td { background:#f3f6f0; font-weight:700; }
-        .amt-debit { color:#8a2323; }
-        .amt-credit { color:#2f6d16; }
 
         /* ================= TOTALS ROW ================= */
-        .items-table tfoot td { border-top:1.4px solid #36751b; background:#eaf2e5; font-weight:800; font-size:11px; padding:2mm 1.6mm; }
+        .items-table tfoot td { border-top:1.4px solid #36751b; background:#eaf2e5; font-weight:800; font-size:10.4px; padding:2mm 1.6mm; }
         .items-table tfoot .totals-label { text-align:right; padding-right:3mm; }
-        .items-table tfoot .closing-row td { background:#285e10; color:#fff; font-size:11.5px; }
+        .items-table tfoot .closing-row td { background:#285e10; color:#fff; font-size:11px; }
 
         /* ================= FOOTER BOX: note + signature ================= */
         .footer-box { table-layout:fixed; border-collapse:collapse; border:1px solid #799169; border-radius:2.4mm; overflow:hidden; margin-top:2mm; }
@@ -82,10 +78,7 @@
     $designPath = base_path('design');
     $logoPath = $designPath.'/glass-grip-logo.png';
     $signaturePath = $designPath.'/signature.png';
-
-    $runningBalance = $openingBalanceBeforeRange;
-    $totalDebit = 0;
-    $totalCredit = 0;
+    $totalGst = $totals['cgst_amount'] + $totals['sgst_amount'] + $totals['igst_amount'];
 @endphp
 
 <body>
@@ -106,71 +99,36 @@
     {{-- TITLE --}}
     <table class="doc-top-layout"><tr>
         <td class="doc-title-cell" style="width:100%;">
-            <div class="doc-title">Customer Ledger</div>
+            <div class="doc-title">Sales Report</div>
             <div class="doc-subtitle">For the period {{ $fromDate ? \Carbon\Carbon::parse($fromDate)->format('d M Y') : 'Beginning' }} to {{ $toDate ? \Carbon\Carbon::parse($toDate)->format('d M Y') : 'Today' }}</div>
         </td>
     </tr></table>
 
-    {{-- ACCOUNT DETAILS + LEDGER DETAIL --}}
+    {{-- REPORT FILTERS + REPORT SUMMARY --}}
     <table class="party-meta-layout" style="width:100%; table-layout:fixed; border-collapse:separate; border-spacing:0;">
         <tr>
-            <!-- LEFT : ACCOUNT DETAILS (50%) -->
+            <!-- LEFT : REPORT FILTERS (50%) -->
             <td style="width:50%; padding-right:2mm; vertical-align:top;">
                 <table class="party-box">
                     <tr>
                         <td>
-                            <div class="party-tag-bar">ACCOUNT DETAILS</div>
+                            <div class="party-tag-bar">REPORT FILTERS</div>
                             <div class="party-fields-wrap">
                                 <table class="party-fields">
                                     <tr>
-                                        <td class="label">Company Name</td>
+                                        <td class="label">Customer</td>
                                         <td class="colon">:</td>
-                                        <td class="line"><strong>{{ $selectedCustomer->name }}</strong></td>
+                                        <td class="line"><strong>{{ $selectedCustomer->name ?? 'All Customers' }}</strong></td>
                                     </tr>
-                                    <tr>
-                                        <td class="label">Address</td>
-                                        <td class="colon">:</td>
-                                        <td class="line">{{ $selectedCustomer->address ?: '-' }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="label">GSTIN</td>
-                                        <td class="colon">:</td>
-                                        <td class="line">{{ $selectedCustomer->gst_number ?: '-' }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="label">Mobile</td>
-                                        <td class="colon">:</td>
-                                        <td class="line">{{ $selectedCustomer->phone ?: '-' }}</td>
-                                    </tr>
-                                </table>
-                            </div>
-                        </td>
-                    </tr>
-                </table>
-            </td>
-
-            <!-- RIGHT : LEDGER DETAIL (50%) -->
-            <td style="width:50%; padding-left:2mm; vertical-align:top;">
-                <table class="party-box">
-                    <tr>
-                        <td>
-                            <div class="party-tag-bar">LEDGER DETAIL</div>
-                            <div class="party-fields-wrap">
-                                <table class="party-fields">
                                     <tr>
                                         <td class="label">Period From</td>
                                         <td class="colon">:</td>
-                                        <td class="line"><strong>{{ $fromDate ? \Carbon\Carbon::parse($fromDate)->format('d M Y') : 'Beginning' }}</strong></td>
+                                        <td class="line">{{ $fromDate ? \Carbon\Carbon::parse($fromDate)->format('d M Y') : 'Beginning' }}</td>
                                     </tr>
                                     <tr>
                                         <td class="label">Period To</td>
                                         <td class="colon">:</td>
-                                        <td class="line"><strong>{{ $toDate ? \Carbon\Carbon::parse($toDate)->format('d M Y') : 'Today' }}</strong></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="label">Opening Balance</td>
-                                        <td class="colon">:</td>
-                                        <td class="line">₹ {{ number_format($openingBalanceBeforeRange, 2) }}</td>
+                                        <td class="line">{{ $toDate ? \Carbon\Carbon::parse($toDate)->format('d M Y') : 'Today' }}</td>
                                     </tr>
                                     <tr>
                                         <td class="label">Generated On</td>
@@ -183,71 +141,104 @@
                     </tr>
                 </table>
             </td>
+
+            <!-- RIGHT : REPORT SUMMARY (50%) -->
+            <td style="width:50%; padding-left:2mm; vertical-align:top;">
+                <table class="party-box">
+                    <tr>
+                        <td>
+                            <div class="party-tag-bar">REPORT SUMMARY</div>
+                            <div class="party-fields-wrap">
+                                <table class="party-fields">
+                                    <tr>
+                                        <td class="label">Total Invoices</td>
+                                        <td class="colon">:</td>
+                                        <td class="line"><strong>{{ $totals['count'] }}</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="label">Sub Total</td>
+                                        <td class="colon">:</td>
+                                        <td class="line">₹ {{ number_format($totals['sub_total'], 2) }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="label">Total GST</td>
+                                        <td class="colon">:</td>
+                                        <td class="line">₹ {{ number_format($totalGst, 2) }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="label">Net Amount</td>
+                                        <td class="colon">:</td>
+                                        <td class="line"><strong>₹ {{ number_format($totals['total_amount'], 2) }}</strong></td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
         </tr>
     </table>
 
-    {{-- LEDGER TABLE --}}
+    {{-- INVOICES TABLE --}}
     <table class="items-table">
         <colgroup>
-            <col style="width:9%"><col style="width:27%"><col style="width:12%"><col style="width:11%"><col style="width:11%"><col style="width:12%"><col style="width:18%">
+            <col style="width:7%"><col style="width:9%"><col style="width:6%"><col style="width:24%"><col style="width:8%"><col style="width:7%"><col style="width:6%"><col style="width:7%"><col style="width:6%"><col style="width:6%"><col style="width:6%"><col style="width:8%">
         </colgroup>
         <thead>
             <tr>
+                <th>Invoice No.</th>
+                <th>Reference No.</th>
                 <th>Date</th>
-                <th style="text-align:left;padding-left:2.5mm;">Description</th>
-                <th>Type</th>
-                <th>Debit (₹)</th>
-                <th>Credit (₹)</th>
-                <th>Balance (₹)</th>
-                <th>Entered By</th>
+                <th style="text-align:left;padding-left:2.5mm;">Customer</th>
+                <th>Created By</th>
+                <th>Sub Total (₹)</th>
+                <th>Discount (₹)</th>
+                <th>Total Amount (₹)</th>
+                <th>CGST (₹)</th>
+                <th>SGST (₹)</th>
+                <th>IGST (₹)</th>
+                <th>Net Amount (₹)</th>
             </tr>
         </thead>
         <tbody>
-            <tr class="row-opening">
-                <td colspan="5" style="text-align:left;padding-left:2.5mm;">Opening Balance</td>
-                <td>{{ number_format($openingBalanceBeforeRange, 2) }}</td>
-                <td>&nbsp;</td>
-            </tr>
-            @forelse($ledgers as $entry)
-                @php
-                    $debit = $entry->amount > 0 ? $entry->amount : 0;
-                    $credit = $entry->amount < 0 ? abs($entry->amount) : 0;
-                    $totalDebit += $debit;
-                    $totalCredit += $credit;
-                    $runningBalance = $entry->balance_after ?? ($runningBalance + $entry->amount);
-                @endphp
+            @forelse($invoices as $invoice)
                 <tr>
-                    <td>{{ $entry->transaction_date->format('d M Y') }}</td>
-                    <td class="desc-cell">{{ $entry->description }}</td>
-                    <td>{{ ucfirst(str_replace('_', ' ', $entry->reference_type)) }}</td>
-                    <td class="amt-debit">{{ $debit ? number_format($debit, 2) : '-' }}</td>
-                    <td class="amt-credit">{{ $credit ? number_format($credit, 2) : '-' }}</td>
-                    <td>{{ number_format($runningBalance, 2) }}</td>
-                    <td>{{ $entry->enteredBy->name ?? '-' }}</td>
+                    <td>{{ $invoice->invoice_number }}</td>
+                    <td>{{ $invoice->other_reference ?: '-' }}</td>
+                    <td>{{ $invoice->invoice_date->format('d M Y') }}</td>
+                    <td class="desc-cell">{{ $invoice->customer->name }}</td>
+                    <td>{{ $invoice->quotation->user->name ?? '-' }}</td>
+                    <td>{{ number_format($invoice->sub_total, 2) }}</td>
+                    <td>{{ $invoice->discount_amount > 0 ? number_format($invoice->discount_amount, 2) : '-' }}</td>
+                    <td>{{ number_format($invoice->sub_total - $invoice->discount_amount, 2) }}</td>
+                    <td>{{ number_format($invoice->cgst_amount, 2) }}</td>
+                    <td>{{ number_format($invoice->sgst_amount, 2) }}</td>
+                    <td>{{ number_format($invoice->igst_amount, 2) }}</td>
+                    <td>{{ number_format($invoice->total_amount, 2) }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="7" style="text-align:center;color:#777;">No transactions in this period.</td>
+                    <td colspan="12" style="text-align:center;color:#777;">No invoices found for this range.</td>
                 </tr>
             @endforelse
         </tbody>
         <tfoot>
-            <tr>
-                <td colspan="3" class="totals-label">Total</td>
-                <td class="amt-debit">{{ number_format($totalDebit, 2) }}</td>
-                <td class="amt-credit">{{ number_format($totalCredit, 2) }}</td>
-                <td colspan="2">&nbsp;</td>
-            </tr>
             <tr class="closing-row">
-                <td colspan="5" class="totals-label">Closing Balance</td>
-                <td colspan="2"> {{ number_format($runningBalance, 2) }}</td>
+                <td colspan="5" class="totals-label">Total</td>
+                <td>{{ number_format($totals['sub_total'], 2) }}</td>
+                <td>{{ number_format($totals['discount_amount'], 2) }}</td>
+                <td>{{ number_format($totals['pre_gst_total'], 2) }}</td>
+                <td>{{ number_format($totals['cgst_amount'], 2) }}</td>
+                <td>{{ number_format($totals['sgst_amount'], 2) }}</td>
+                <td>{{ number_format($totals['igst_amount'], 2) }}</td>
+                <td>{{ number_format($totals['total_amount'], 2) }}</td>
             </tr>
         </tfoot>
     </table>
 
     {{-- NOTE + SIGNATURE --}}
     <!-- <table class="footer-box"><tr>
-        <td class="fb-left">Please retain this document for your records.<br>This is a computer-generated statement. Kindly verify all entries and report any discrepancy within 7 days of receipt.</td>
+        <td class="fb-left">Please retain this document for your records.<br>This is a computer-generated report. Kindly verify all entries and report any discrepancy to the accounts team.</td>
         <td class="fb-right">
             <div class="signature-image-wrap"><img src="{{ $signaturePath }}" class="signature-image" alt="Authorised Signature"></div>
             <div class="sign-line"></div>
