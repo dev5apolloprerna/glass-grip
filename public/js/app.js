@@ -84,6 +84,8 @@ function initQuotationBuilder() {
   var gstNoCheckbox = document.getElementById('gst_no');
   var gstHiddenInput = document.getElementById('gst_applicable_hidden');
   var discountInput = document.getElementById('discount_amount');
+  var adminChargesInput = document.getElementById('admin_charges');
+  var materialHandlingChargesInput = document.getElementById('material_handling_charges');
   var discountErrorHint = document.getElementById('discountErrorHint');
   var rowIndex = parseInt(container.getAttribute('data-next-index'), 10) || 0;
 
@@ -189,6 +191,8 @@ function initQuotationBuilder() {
 
     var gstApplicable = isGstApplicable();
     var discount = discountInput ? (parseFloat(discountInput.value) || 0) : 0;
+    var adminCharges = adminChargesInput ? (parseFloat(adminChargesInput.value) || 0) : 0;
+    var materialHandlingCharges = materialHandlingChargesInput ? (parseFloat(materialHandlingChargesInput.value) || 0) : 0;
 
     // Discount cannot exceed the sub total - clamp it and show a hint.
     var discountExceeds = discount > subTotal;
@@ -198,15 +202,15 @@ function initQuotationBuilder() {
     }
     if (discountErrorHint) discountErrorHint.style.display = discountExceeds ? 'block' : 'none';
 
-    var discountedSubTotal = subTotal - discount;
-    var gstAmount = gstApplicable ? discountedSubTotal * 0.18 : 0;
+    var taxableAmount = subTotal - discount + adminCharges + materialHandlingCharges;
+    var gstAmount = gstApplicable ? taxableAmount * 0.18 : 0;
 
-    var beforeRounding = discountedSubTotal + gstAmount;
+    var beforeRounding = taxableAmount + gstAmount;
     var roundedTotal = Math.round(beforeRounding);
     var roundOff = roundedTotal - beforeRounding;
 
     setText('summarySubTotal', formatMoney(subTotal));
-    setText('summaryNetAmount', formatMoney(discountedSubTotal));
+    setText('summaryNetAmount', formatMoney(taxableAmount));
     setText('summaryGstAmount', formatMoney(gstAmount));
     setText('summaryRoundOff', (roundOff >= 0 ? '+' : '-') + '\u20b9' + formatMoney(Math.abs(roundOff)));
     setText('summaryTotal', formatMoney(roundedTotal));
@@ -215,7 +219,7 @@ function initQuotationBuilder() {
     if (gstRow) gstRow.style.display = gstApplicable ? 'inline' : 'none';
 
     var netAmountRow = document.getElementById('summaryNetAmountRow');
-    if (netAmountRow) netAmountRow.style.display = discount > 0 ? 'flex' : 'none';
+    if (netAmountRow) netAmountRow.style.display = discount > 0 || adminCharges > 0 || materialHandlingCharges > 0 ? 'flex' : 'none';
   }
 
   function setText(id, text) {
@@ -244,6 +248,8 @@ function initQuotationBuilder() {
     });
   }
   if (discountInput) discountInput.addEventListener('input', recalcTotals);
+  if (adminChargesInput) adminChargesInput.addEventListener('input', recalcTotals);
+  if (materialHandlingChargesInput) materialHandlingChargesInput.addEventListener('input', recalcTotals);
 
   // If creating fresh, start with one row.
   if (container.querySelectorAll('.item-row').length === 0) {

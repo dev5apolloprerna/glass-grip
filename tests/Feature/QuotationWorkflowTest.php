@@ -16,6 +16,35 @@ class QuotationWorkflowTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_quotation_charges_are_included_before_gst_and_copied_to_invoice(): void
+    {
+        $user = User::factory()->create();
+        $quotation = $this->createQuotation($user);
+        $quotation->update([
+            'gst_applicable' => true,
+            'discount_amount' => 10,
+            'admin_charges' => 20,
+            'material_handling_charges' => 30,
+        ]);
+
+        $quotation->recalculateTotals();
+        $quotation->refresh();
+
+        $this->assertEquals(25.20, $quotation->gst_amount);
+        $this->assertEquals(165, $quotation->total_amount);
+
+        $this->actingAs($user)->post(route('quotations.mark-sent', $quotation));
+        $this->actingAs($user)->post(route('quotations.generate-invoice', $quotation), [
+            'invoice_number' => 'INV-CHARGES-1',
+        ]);
+
+        $invoice = $quotation->fresh()->invoice;
+        $this->assertEquals(20, $invoice->admin_charges);
+        $this->assertEquals(30, $invoice->material_handling_charges);
+        $this->assertEquals(25.20, $invoice->gst_amount);
+        $this->assertEquals(165, $invoice->total_amount);
+    }
+
     public function test_invoice_displays_reference_and_requested_item_columns(): void
     {
         $user = User::factory()->create();

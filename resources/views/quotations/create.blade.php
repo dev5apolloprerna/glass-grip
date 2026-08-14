@@ -45,6 +45,14 @@
                                 </span>
                             </div>
                             <div id="discountErrorHint" class="form-error" style="display:none; text-align:right; margin-top:-4px; margin-bottom:6px;">Discount cannot be greater than the Sub Total.</div>
+                            <div class="row">
+                                <span>Admin Charges (&#8377;)</span>
+                                <span><input type="number" step="0.01" min="0" id="admin_charges" name="admin_charges" class="form-control" style="width:130px; text-align:right; display:inline-block; padding:5px 10px;" value="{{ old('admin_charges', 0) }}" placeholder="0"></span>
+                            </div>
+                            <div class="row">
+                                <span>Material Handling Charges (&#8377;)</span>
+                                <span><input type="number" step="0.01" min="0" id="material_handling_charges" name="material_handling_charges" class="form-control" style="width:130px; text-align:right; display:inline-block; padding:5px 10px;" value="{{ old('material_handling_charges', 0) }}" placeholder="0"></span>
+                            </div>
                             <div class="row" id="summaryNetAmountRow" style="display:none;"><span>Total Amount</span><span>&#8377;<span id="summaryNetAmount">0.00</span></span></div>
                             <div class="row">
                                 <span>

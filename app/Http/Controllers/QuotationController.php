@@ -74,6 +74,8 @@ class QuotationController extends Controller
                 'status' => 'draft',
                 'gst_applicable' => $data['gst_applicable'] ?? false,
                 'discount_amount' => $data['discount_amount'] ?? 0,
+                'admin_charges' => $data['admin_charges'] ?? 0,
+                'material_handling_charges' => $data['material_handling_charges'] ?? 0,
                 ...$this->shippingData($data),
             ]);
 
@@ -180,6 +182,8 @@ class QuotationController extends Controller
                 'quotation_date' => $data['quotation_date'],
                 'gst_applicable' => $data['gst_applicable'] ?? false,
                 'discount_amount' => $data['discount_amount'] ?? 0,
+                'admin_charges' => $data['admin_charges'] ?? 0,
+                'material_handling_charges' => $data['material_handling_charges'] ?? 0,
                 ...$this->shippingData($data),
             ]);
 
@@ -267,6 +271,8 @@ class QuotationController extends Controller
                 'sub_total' => $quotation->sub_total,
                 'gst_amount' => $quotation->gst_amount,
                 'discount_amount' => $quotation->discount_amount,
+                'admin_charges' => $quotation->admin_charges,
+                'material_handling_charges' => $quotation->material_handling_charges,
                 'round_off' => $quotation->round_off,
                 'total_amount' => $quotation->total_amount,
                 'shipping_address' => $quotation->shipping_address,
@@ -327,6 +333,8 @@ class QuotationController extends Controller
                 'status' => 'draft',
                 'gst_applicable' => $quotation->gst_applicable,
                 'discount_amount' => $quotation->discount_amount,
+                'admin_charges' => $quotation->admin_charges,
+                'material_handling_charges' => $quotation->material_handling_charges,
             ]);
 
             foreach ($quotation->items as $item) {
@@ -433,6 +441,8 @@ class QuotationController extends Controller
             'quotation_date' => ['required', 'date'],
             'gst_applicable' => ['nullable', 'boolean'],
             'discount_amount' => ['nullable', 'numeric', 'min:0'],
+            'admin_charges' => ['nullable', 'numeric', 'min:0'],
+            'material_handling_charges' => ['nullable', 'numeric', 'min:0'],
             'shipping_address_different' => ['nullable', 'boolean'],
             'shipping_address' => ['required', 'string', 'max:2000'],
             'shipping_address_line_2' => ['nullable', 'string', 'max:2000'],
