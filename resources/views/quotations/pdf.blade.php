@@ -131,7 +131,7 @@
             <tbody>
                 @foreach($quotation->items as $i => $item)<tr>
                     <td class="center">{{ $i + 1 }}</td>
-                    <td>{{ $item->product->name }}<br><small>{{ $item->product->description }}</small></td>
+                    <td>{{ $item->product->name }} -  Size : {{ number_format($item->size_mtr, 2) }} Mtr<br><small>{{ $item->product->description }}</small></td>
                     <td class="center">{{ $item->product->hsn_code }}</td>
                     <td class="center">{{ $item->no_of_rolls }}</td>
                     <td class="right">{{ number_format($item->price_per_mtr, 2) }}</td>
@@ -156,6 +156,16 @@
                         <td class="total-label">Discount</td>
                         <td class="rupee">₹</td>
                         <td class="total-value">-{{ number_format($quotation->discount_amount, 2) }}</td>
+                    </tr>@endif
+                    @if($quotation->admin_charges > 0)<tr>
+                        <td class="total-label">Admin Charges</td>
+                        <td class="rupee">₹</td>
+                        <td class="total-value">{{ number_format($quotation->admin_charges, 2) }}</td>
+                    </tr>@endif
+                    @if($quotation->material_handling_charges > 0)<tr>
+                        <td class="total-label">Material Handling Charges</td>
+                        <td class="rupee">₹</td>
+                        <td class="total-value">{{ number_format($quotation->material_handling_charges, 2) }}</td>
                     </tr>@endif<tr>
                         <td class="total-label">CGST</td>
                         <td class="rupee">₹</td>

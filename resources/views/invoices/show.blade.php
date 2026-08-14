@@ -76,7 +76,15 @@
                 <div class="row"><span>Sub Total</span><span>&#8377;{{ number_format($invoice->sub_total, 2) }}</span></div>
                 @if($invoice->discount_amount > 0)
                     <div class="row"><span>Discount</span><span>-&#8377;{{ number_format($invoice->discount_amount, 2) }}</span></div>
-                    <div class="row"><span>Total Amount</span><span>&#8377;{{ number_format($invoice->sub_total - $invoice->discount_amount, 2) }}</span></div>
+                @endif
+                @if($invoice->admin_charges > 0)
+                    <div class="row"><span>Admin Charges</span><span>+&#8377;{{ number_format($invoice->admin_charges, 2) }}</span></div>
+                @endif
+                @if($invoice->material_handling_charges > 0)
+                    <div class="row"><span>Material Handling Charges</span><span>+&#8377;{{ number_format($invoice->material_handling_charges, 2) }}</span></div>
+                @endif
+                @if($invoice->discount_amount > 0 || $invoice->admin_charges > 0 || $invoice->material_handling_charges > 0)
+                    <div class="row"><span>Taxable Amount</span><span>&#8377;{{ number_format($invoice->sub_total - $invoice->discount_amount + $invoice->admin_charges + $invoice->material_handling_charges, 2) }}</span></div>
                 @endif
                 @if($invoice->gst_amount > 0)
                     @if($invoice->cgst_amount > 0)<div class="row"><span>CGST (9%)</span><span>&#8377;{{ number_format($invoice->cgst_amount,2) }}</span></div><div class="row"><span>SGST (9%)</span><span>&#8377;{{ number_format($invoice->sgst_amount,2) }}</span></div>@else<div class="row"><span>IGST (18%)</span><span>&#8377;{{ number_format($invoice->igst_amount,2) }}</span></div>@endif

@@ -18,6 +18,8 @@ class Invoice extends Model
         'sub_total',
         'gst_amount',
         'discount_amount',
+        'admin_charges',
+        'material_handling_charges',
         'round_off',
         'total_amount',
         'shipping_address', 'shipping_address_line_2', 'shipping_state', 'shipping_city', 'shipping_pincode',
@@ -32,6 +34,8 @@ class Invoice extends Model
             'gst_amount' => 'decimal:2',
             'cgst_amount' => 'decimal:2', 'sgst_amount' => 'decimal:2', 'igst_amount' => 'decimal:2',
             'discount_amount' => 'decimal:2',
+            'admin_charges' => 'decimal:2',
+            'material_handling_charges' => 'decimal:2',
             'round_off' => 'decimal:2',
             'total_amount' => 'decimal:2',
         ];

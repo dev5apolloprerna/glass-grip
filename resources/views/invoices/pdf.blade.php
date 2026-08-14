@@ -176,7 +176,7 @@
                 <th style="text-align:left;padding-left:2.5mm;">Description of Goods</th>
                 <th>HSN</th>
                 <th>No. of <br>Rolls</th>
-                <th>Per Mtr<br> Rate</th>
+                <th>Rate</th>
                 <th>Total Amount</th>
             </tr>
         </thead>
@@ -209,6 +209,20 @@
                 <td class="text-right">{{ number_format($invoice->discount_amount, 2) }}</td>
             </tr>
             @endif
+
+             @if($invoice->admin_charges > 0)
+            <tr>
+                <td></td><td>Admin Charges</td><td></td><td></td>
+                <td class="text-right">{{ number_format($invoice->admin_charges, 2) }}</td>
+            </tr>
+            @endif
+            @if($invoice->material_handling_charges > 0)
+            <tr>
+                <td></td><td>Material Handling Charges</td><td></td><td></td>
+                <td class="text-right">{{ number_format($invoice->material_handling_charges, 2) }}</td>
+            </tr>
+            @endif
+            
 
             @if($invoice->cgst_amount > 0)
             <tr class="summary-row">
