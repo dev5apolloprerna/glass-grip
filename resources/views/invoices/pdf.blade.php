@@ -122,7 +122,7 @@
             <table class="doc-meta">
                 <tr><td class="label">Invoice No.</td><td class="colon">:</td><td class="line"><strong>{{ $invoice->invoice_number }}</strong></td></tr>
                 <tr><td class="label">Dated</td><td class="colon">:</td><td class="line"><strong>{{ $invoice->invoice_date->format('d M Y') }}</strong></td></tr>
-                <tr><td class="label">Reference No.</td><td class="colon">:</td><td class="line">{{ data_get($invoice, 'reference_no') ?: data_get($invoice, 'reference_number') ?: data_get($invoice, 'quotation.quotation_number') ?: '-' }}</td></tr>
+                <tr><td class="label">Reference No.</td><td class="colon">:</td><td class="line">{{ $invoice->other_reference ?: $invoice->quotation->quotation_number }}</td></tr>
 
             </table>
         </td>
