@@ -52,6 +52,7 @@ Route::middleware('guest')->group(function () {
     // Payment collection against a specific invoice
     Route::get('payment-collections', [PaymentController::class, 'index'])->name('payment-collections.index');
     Route::post('payment-collections', [PaymentController::class, 'storeCustomerPayment'])->name('payment-collections.store');
+    Route::get('payment-collections/customers/{customer}/history', [PaymentController::class, 'history'])->name('payment-collections.history');
     Route::get('payment-collections/{payment}/receipt', [PaymentController::class, 'receipt'])->name('payment-collections.receipt');
     Route::post('invoices/{invoice}/payments', [PaymentController::class, 'store'])->name('payments.store');
     Route::delete('payments/{payment}', [PaymentController::class, 'destroy'])->name('payments.destroy');

@@ -42,7 +42,7 @@ class PaymentController extends Controller
                 'invoices as billed_amount' => $generatedInvoice,
             ], 'total_amount')
             ->withSum('payments as collected_amount', 'amount')
-            ->with('latestCompanyPayment')
+            // ->with('latestCompanyPayment')
             ->orderBy('name')
             ->get();
 
@@ -132,6 +132,20 @@ class PaymentController extends Controller
 
         return redirect()->route('payment-collections.index')
             ->with('success', 'Payment collected successfully. Receipt '.$payment->receipt_number.' generated.');
+    }
+    public function history(Customer $customer)
+    {
+        $payments = $customer->payments()
+            ->with(['invoice', 'enteredBy'])
+            ->latest('payment_date')
+            ->latest('id')
+            ->get();
+
+        return view('payments.history', [
+            'customer' => $customer,
+            'payments' => $payments,
+            'totalCollected' => (float) $payments->sum('amount'),
+        ]);
     }
 
     public function receipt(Payment $payment)

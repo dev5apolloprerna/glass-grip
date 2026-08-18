@@ -104,7 +104,7 @@ class PaymentCollectionTest extends TestCase
             ->assertSee('250.00')
             ->assertSee('500.00');
     }
-    public function test_latest_company_receipt_download_is_shown_with_collection_action(): void
+    public function test_company_payment_history_action_is_shown_with_eye_icon(): void
     {
         $employee = User::factory()->create(['role' => 'user']);
         $customer = Customer::create(['name' => 'Receipt Company', 'created_by' => $employee->id]);
@@ -115,9 +115,30 @@ class PaymentCollectionTest extends TestCase
         $this->actingAs($employee)->get(route('payment-collections.index'))
             ->assertOk()
             ->assertSee('Collect Payment')
-            ->assertSee(route('payment-collections.receipt', $payment), false)
-            ->assertSee('Download Receipt')
+            ->assertSee(route('payment-collections.history', $customer), false)
+            ->assertSee('View History')
+            ->assertSee('aria-hidden="true"', false)
             ->assertDontSee('Recent Company Payments');
+    }
+
+  public function test_company_payment_history_shows_all_details_and_receipt_links(): void
+    {
+        $employee = User::factory()->create(['role' => 'user', 'name' => 'Payment Collector']);
+        $customer = Customer::create(['name' => 'History Company', 'contact_person' => 'Jane Doe', 'phone' => '9876543210', 'created_by' => $employee->id]);
+        $first = Payment::create(['customer_id' => $customer->id, 'payment_date' => '2026-08-10', 'amount' => 125.50, 'payment_method' => 'bank_transfer', 'reference_number' => 'TXN-100', 'notes' => 'First instalment', 'receipt_number' => 'PR-000010', 'entered_by' => $employee->id]);
+        $second = Payment::create(['customer_id' => $customer->id, 'payment_date' => '2026-08-12', 'amount' => 200, 'payment_method' => 'upi', 'reference_number' => 'UPI-200', 'receipt_number' => 'PR-000011', 'entered_by' => $employee->id]);
+
+        $this->actingAs($employee)->get(route('payment-collections.history', $customer))
+            ->assertOk()
+            ->assertSee('History Company - Payment History')
+            ->assertSee('12 Aug 2026')
+            ->assertSee('Bank Transfer')
+            ->assertSee('TXN-100')
+            ->assertSee('First instalment')
+            ->assertSee('Payment Collector')
+            ->assertSee('325.50')
+            ->assertSee(route('payment-collections.receipt', $first), false)
+            ->assertSee(route('payment-collections.receipt', $second), false);
     }
 
     public function test_receipt_includes_amount_in_words_and_current_due_amount(): void
