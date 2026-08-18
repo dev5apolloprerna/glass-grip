@@ -124,7 +124,7 @@
                     <th>Description of Goods</th>
                     <th>HSN Code</th>
                     <th>Quantity (Rolls)</th>
-                    <th>Rate (Per Pc)</th>
+                    <th>Rate </th>
                     <th>Amount</th>
                 </tr>
             </thead>

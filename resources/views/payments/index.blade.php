@@ -5,7 +5,7 @@
 @section('content')
     <style>
         .payment-action-column,
-        .receipt-action-column {
+        .history-action-column {
             width: 150px;
             min-width: 150px;
             text-align: center !important;
@@ -13,7 +13,7 @@
         }
 
         .payment-action-column .btn,
-        .receipt-action-column .btn {
+        .history-action-column .btn {
             display: inline-block;
             min-width: 140px;
             text-align: center;
@@ -51,7 +51,7 @@
         </div>
         <div class="table-wrap">
             <table class="table">
-                <thead><tr><th>Company</th><th>Contact</th><th class="text-right">Receivable</th><th class="text-right">Collected</th><th class="text-right">Pending</th><th class="payment-action-column">Payment</th><th class="receipt-action-column">Receipt</th></tr></thead>
+                <thead><tr><th>Company</th><th>Contact</th><th class="text-right">Receivable</th><th class="text-right">Collected</th><th class="text-right">Pending</th><th class="payment-action-column">Payment</th><th class="history-action-column">Payment History</th></tr></thead>
                 <tbody>
                     @forelse($customers as $customer)
                         <tr>
@@ -75,17 +75,15 @@
                                     <span class="pill pill-approved">Paid</span>
                                 @endif
                             </td>
-                            <td class="receipt-action-column">
-                                {{-- Full or partial payment થયેલું હોય તો receipt દેખાડવી --}}
-                                @if($customer->collected_amount > 0 && $customer->latestCompanyPayment)
+                            <td class="history-action-column">
+                                @if($customer->collected_amount > 0)
                                     <a
                                         class="btn btn-secondary btn-sm"
-                                        href="{{ route(
-                                            'payment-collections.receipt',
-                                            $customer->latestCompanyPayment->id
-                                        ) }}"
+                                        href="{{ route('payment-collections.history', $customer) }}"
+                                        aria-label="View payment history for {{ $customer->name }}"
                                     >
-                                        Download Receipt
+                                        <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                        View History
                                     </a>
                                 @else
                                     <span class="text-muted">-</span>
