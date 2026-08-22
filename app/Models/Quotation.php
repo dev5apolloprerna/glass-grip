@@ -87,6 +87,10 @@ class Quotation extends Model
 
     public function displayStatus(): string
     {
+        if ($this->invoice?->document_status === 'invoice_approved') {
+            return 'Invoice Sent';
+        }
+
         if ($this->isSent()) {
             return 'Quotation Sent';
         }
@@ -100,6 +104,10 @@ class Quotation extends Model
 
     public function displayStatusClass(): string
     {
+        if ($this->invoice?->document_status === 'invoice_approved') {
+            return 'invoice-sent';
+        }
+        
         return $this->isSent() ? 'sent' : $this->status;
     }
 

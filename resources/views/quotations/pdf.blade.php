@@ -26,9 +26,9 @@
         .accent-green { float:left; width:15mm; height:2.1mm; background:#4f8128; }
         .accent-dark { overflow:hidden; height:2.1mm; background:#141b21; }
         .quotation-top-layout { table-layout:fixed; margin-top:3mm; margin-bottom:2.5mm; }
-        .quotation-title-cell { width:52%; padding-right:6mm; vertical-align:middle; }
+        .quotation-title-cell { width:50%; padding-right:6mm; vertical-align:middle; }
         .quotation-title { font-size:24px; font-weight:800; color:#0d1720; letter-spacing:.8px; line-height:1; text-transform:uppercase; text-shadow:1.4px 1.4px 0 rgba(0,0,0,.16); }
-        .quotation-meta-cell { width:48%; border-left:1px solid #6f756b; padding-left:6mm; vertical-align:top; }
+        .quotation-meta-cell { width:50%; border-left:1px solid #6f756b; padding-left:3mm; vertical-align:top; }
         .quote-meta { table-layout:fixed; margin-top:.5mm; }
         .quote-meta td { height:8mm; vertical-align:middle; font-size:11.5px; }
         .quote-meta .label { width:34%; font-weight:700; }
@@ -68,7 +68,7 @@
         .total-label { width:51%; } .rupee { width:11%; text-align:center; border-right:none !important; } .total-value { width:38%; text-align:right; }
         .grand-total .total-label, .grand-label { color:#fff; background:#2f6d16; font-weight:800; font-size:11px; }
         .grand-total .rupee, .grand-total .total-value { font-weight:800; }
-        .signature-block { width:45%; float:right; text-align:center; margin-top:1.5mm; }
+        .signature-block { width:45%; float:right; text-align:center; margin-top:8mm; }
         .signature-clear { clear:both; }
         .company-sign { font-size:13.8px; margin-bottom:0.5mm; } .company-sign strong { color:#2f6d16; font-size:13.8px; }
         .signature-image-wrap { width:46mm; height:9mm; margin:0 auto 1mm; text-align:center; overflow:hidden; }
@@ -103,8 +103,31 @@
             <table class="tax-table"><tr><td class="tax-label">PAN</td><td class="tax-colon">:</td><td>{{ config('invoice.pan_number') ?: 'ALTPG0235F' }}</td></tr><tr><td class="tax-label">GST No.</td><td class="tax-colon">:</td><td>{{ config('invoice.gst_number') ?: '24ALTPG0235F2ZD' }}</td></tr></table>
         </td>
     </tr></table>
-    <div class="accent-bar"><div class="accent-green"></div><div class="accent-dark"></div></div>
-    <table class="quotation-top-layout"><tr><td class="quotation-title-cell"><div class="quotation-title">QUOTATION</div></td><td class="quotation-meta-cell"><table class="quote-meta"><tr><td class="label">Quotation No.</td><td class="colon">:</td><td class="line">{{ $quotation->quotation_number }}</td></tr><tr><td class="label">Date</td><td class="colon">:</td><td class="line">{{ $quotation->quotation_date->format('d M Y') }}</td></tr></table></td></tr></table>
+    <div class="accent-bar">
+	    <div class="accent-green"></div>
+	    <div class="accent-dark"></div>
+    </div>
+    <table class="quotation-top-layout">
+    <tr>
+    	<td class="quotation-title-cell">
+    		<div class="quotation-title">QUOTATION</div>
+    	</td>
+    	<td class="quotation-meta-cell">
+    	<table class="quote-meta">
+    		<tr>
+    			<td class="label">Quotation No.</td>
+    			<td class="colon">:</td>
+    			<td class="line">{{ $quotation->quotation_number }}</td>
+    		</tr>
+    		<tr>
+    			<td class="label">Date</td>
+    			<td class="colon">:</td>
+    			<td class="line">{{ $quotation->quotation_date->format('d M Y') }}</td>
+    		</tr>
+    	</table>
+    	</td>
+    </tr>
+    </table>
     <table class="party-meta-layout"><tr>
         <td class="bill-cell"><table class="party-box"><tr><td><div class="party-tag-bar">BILL TO</div><div class="party-fields-wrap"><table class="party-fields"><tr><td class="label">Company Name</td><td class="colon">:</td><td class="line"><strong>{{ $customer->name }}</strong></td></tr><tr><td class="label">Address Line 1</td><td class="colon">:</td><td class="line">{{ $customer->address ?: '-' }}</td></tr><tr><td class="label">Address Line 2</td><td class="colon">:</td><td class="line">{{ $customer->address_line_2 ?: '-' }}</td></tr><tr><td class="label">City</td><td class="colon">:</td><td class="line">{{ $customer->city ?: '-' }}</td></tr><tr><td class="label">State</td><td class="colon">:</td><td class="line">{{ $customer->state ?: '-' }}</td></tr><tr><td class="label">Pincode</td><td class="colon">:</td><td class="line">{{ $customer->pincode ?: '-' }}</td></tr>@if($quotation->gst_applicable)<tr><td class="label">GST No.</td><td class="colon">:</td><td class="line">{{ $customer->gst_number ?: '-' }}</td></tr>@endif</table></div></td></tr></table></td>
         <td class="ship-cell"><table class="party-box"><tr><td><div class="party-tag-bar">SHIP TO</div><div class="party-fields-wrap"><table class="party-fields"><tr><td class="label">Company Name</td><td class="colon">:</td><td class="line"><strong>{{ $shipName }}</strong></td></tr><tr><td class="label">Address Line 1</td><td class="colon">:</td><td class="line">{{ $shipAddress ?: '-' }}</td></tr><tr><td class="label">Address Line 2</td><td class="colon">:</td><td class="line">{{ $shipAddress2 ?: '-' }}</td></tr><tr><td class="label">City</td><td class="colon">:</td><td class="line">{{ $shipCity ?: '-' }}</td></tr><tr><td class="label">State</td><td class="colon">:</td><td class="line">{{ $shipState ?: '-' }}</td></tr><tr><td class="label">Pincode</td><td class="colon">:</td><td class="line">{{ $shipPincode ?: '-' }}</td></tr></table></div></td></tr></table></td>
@@ -118,6 +141,7 @@
     <col style="width:25mm">
     <col style="width:30mm">
 </colgroup>
+
             <thead>
                 <tr>
                     <th>Sr.</th>
@@ -193,7 +217,14 @@
             </div>
             <div class="bottom-clear"></div>
         </div>
-    <div class="signature-block"><div class="company-sign">For <strong>GlassGrip Masking Tapes</strong></div><div class="signature-image-wrap"><img src="{{ $signaturePath }}" class="signature-image" alt="Authorised Signature"></div><div class="sign-line"></div><div class="authorized">Authorised Signatory</div></div><div class="signature-clear"></div>
+    <div class="signature-block">
+    	<div class="company-sign">For <strong>GlassGrip Masking Tapes</strong></div>
+    	<div class="signature-image-wrap">
+    		<img src="{{ $signaturePath }}" class="signature-image" alt="Authorised Signature"></div>
+    		<div class="sign-line"></div>
+    		<div class="authorized">Authorised Signatory</div>
+    	</div>
+    	<div class="signature-clear"></div>
 </div>
 </body>
 

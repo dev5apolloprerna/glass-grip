@@ -21,6 +21,7 @@
                         <option value="draft" {{ $status === 'draft' ? 'selected' : '' }}>Quotation Created</option>
                         <option value="sent" {{ $status === 'sent' ? 'selected' : '' }}>Quotation Sent</option>
                         <option value="approved" {{ $status === 'approved' ? 'selected' : '' }}>Approved</option>
+                        <option value="invoice_sent" {{ $status === 'invoice_sent' ? 'selected' : '' }}>Invoice Sent</option>
                         <option value="rejected" {{ $status === 'rejected' ? 'selected' : '' }}>Rejected</option>
                     </select>
                 </div>

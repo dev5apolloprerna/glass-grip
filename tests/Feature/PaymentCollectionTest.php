@@ -15,6 +15,44 @@ class PaymentCollectionTest extends TestCase
 {
     use RefreshDatabase;
 
+   public function test_pending_amounts_page_lists_customer_balances_and_total(): void
+    {
+        $employee = User::factory()->create(['role' => 'user']);
+        $first = Customer::create(['name' => 'Alpha Glass', 'opening_balance' => 100, 'created_by' => $employee->id]);
+        $second = Customer::create(['name' => 'Beta Glass', 'opening_balance' => 0, 'created_by' => $employee->id]);
+        Customer::create(['name' => 'Settled Glass', 'opening_balance' => 0, 'created_by' => $employee->id]);
+
+        $first->ledgers()->create(['transaction_date' => now(), 'amount' => 150, 'description' => 'Invoice', 'reference_type' => 'invoice', 'entered_by' => $employee->id, 'balance_after' => 250]);
+        $second->ledgers()->create(['transaction_date' => now(), 'amount' => 75.50, 'description' => 'Invoice', 'reference_type' => 'invoice', 'entered_by' => $employee->id, 'balance_after' => 75.50]);
+
+        $this->actingAs($employee)
+            ->get(route('pending-amounts.index'))
+            ->assertOk()
+            ->assertSee('Alpha Glass')
+            ->assertSee('250.00')
+            ->assertSee('Beta Glass')
+            ->assertSee('75.50')
+            ->assertSee('325.50')
+            ->assertDontSee('Settled Glass');
+    }
+
+    public function test_pending_amounts_report_can_be_exported_to_excel(): void
+    {
+        $employee = User::factory()->create(['role' => 'user']);
+        $customer = Customer::create(['name' => 'Export Glass', 'opening_balance' => 125.50, 'created_by' => $employee->id]);
+
+        $response = $this->actingAs($employee)->get(route('pending-amounts.excel'));
+
+        $response->assertOk()
+            ->assertHeader('Content-Type', 'application/vnd.ms-excel; charset=UTF-8')
+            ->assertDownload('pending-payments-'.now()->format('Y-m-d').'.xls')
+            ->assertSee('Pending Payment Report')
+            ->assertSee($customer->name)
+            ->assertSee('125.50');
+    }
+
+
+
     public function test_user_can_collect_company_wise_payment_and_receipt_is_created(): void
     {
         $employee = User::factory()->create(['role' => 'user', 'status' => 'active']);

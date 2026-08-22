@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Dashboard') - Vendor & Quotation Manager</title>
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v={{ filemtime(public_path('css/app.css')) }}">
     @stack('styles')
 </head>
 <body>
@@ -27,7 +27,9 @@
 
                     <div class="sidebar-section">Reports</div>
                     <a href="{{ route('reports.customer-ledger') }}" class="{{ request()->routeIs('reports.customer-ledger') ? 'active' : '' }}">Customer Ledger</a>
+                    <a href="{{ route('pending-amounts.index') }}" class="{{ request()->routeIs('pending-amounts.*') ? 'active' : '' }}">Pending Amounts</a>
                     <a href="{{ route('reports.sales') }}" class="{{ request()->routeIs('reports.sales') ? 'active' : '' }}">Sales Report</a>
+
                 @endif
             </nav>
         </aside>

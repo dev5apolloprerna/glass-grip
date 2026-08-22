@@ -15,6 +15,47 @@ use NumberFormatter;
 class PaymentController extends Controller
 {
     /**
+     * Show a concise customer-wise list of pending balances.
+     */
+    public function pendingAmounts()
+    {
+        $data = $this->pendingAmountsData();
+
+        return view('payments.pending-amounts', $data);
+    }
+
+    /**
+     * Download the customer-wise pending payment report as an Excel-compatible file.
+     */
+    public function pendingAmountsExcel()
+    {
+        return response()
+            ->view('payments.pending-amounts-excel', $this->pendingAmountsData())
+            ->header('Content-Type', 'application/vnd.ms-excel; charset=UTF-8')
+            ->header('Content-Disposition', 'attachment; filename="pending-payments-'.now()->format('Y-m-d').'.xls"');
+    }
+
+    private function pendingAmountsData(): array
+    {
+        $customers = Customer::query()
+            ->withSum('ledgers as ledger_balance', 'amount')
+            ->orderBy('name')
+            ->get()
+            ->each(function (Customer $customer) {
+                $customer->pending_amount = max(
+                    0,
+                    (float) $customer->opening_balance + (float) ($customer->ledger_balance ?? 0)
+                );
+            })
+            ->filter(fn (Customer $customer) => $customer->pending_amount > 0);
+
+        $totalPending = $customers->sum('pending_amount');
+
+        return compact('customers', 'totalPending');
+    }
+
+    
+    /**
      * Record a payment collected against a specific approved quotation's invoice.
      */
     public function index(Request $request)
