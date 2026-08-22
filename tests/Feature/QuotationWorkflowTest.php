@@ -120,7 +120,39 @@ class QuotationWorkflowTest extends TestCase
 
         $this->assertDatabaseMissing('invoices', ['invoice_number' => 'INV-100']);
     }
-public function test_an_unsent_quotation_cannot_generate_an_invoice(): void
+   public function test_sent_invoice_status_is_shown_on_quotation_pages(): void
+    {
+        $user = User::factory()->create();
+        $quotation = $this->createQuotation($user);
+        $invoice = Invoice::create([
+            'invoice_number' => 'INV-SENT-1',
+            'quotation_id' => $quotation->id,
+            'customer_id' => $quotation->customer_id,
+            'invoice_date' => now()->toDateString(),
+            'sub_total' => 100,
+            'total_amount' => 100,
+            'document_status' => 'invoice_approved',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('quotations.index'))
+            ->assertOk()
+            ->assertSee('Invoice Sent')
+            ->assertSee('pill-invoice-sent');
+
+        $this->actingAs($user)
+            ->get(route('quotations.show', $quotation))
+            ->assertOk()
+            ->assertSee('Invoice Sent')
+            ->assertSee('pill-invoice-sent');
+
+        $this->actingAs($user)
+            ->get(route('quotations.index', ['status' => 'invoice_sent']))
+            ->assertOk()
+            ->assertSee($quotation->quotation_number);
+    }
+    
+    public function test_an_unsent_quotation_cannot_generate_an_invoice(): void
     {
         $user = User::factory()->create();
         $quotation = $this->createQuotation($user);

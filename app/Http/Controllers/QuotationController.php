@@ -32,7 +32,8 @@ class QuotationController extends Controller
                 });
             })
             ->when($status === 'sent', fn ($q) => $q->where('status', 'draft')->where('document_status', 'quotation_sent'))
-            ->when($status && $status !== 'sent', function ($q) use ($status) {
+            ->when($status === 'invoice_sent', fn ($q) => $q->whereHas('invoice', fn ($invoice) => $invoice->where('document_status', 'invoice_approved')))
+            ->when($status && ! in_array($status, ['sent', 'invoice_sent'], true), function ($q) use ($status) {
                 $q->where('status', $status);
 
                 if ($status === 'draft') {
