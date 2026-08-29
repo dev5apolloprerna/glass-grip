@@ -123,7 +123,8 @@ document.querySelectorAll('.js-collect').forEach(function (button) {
         document.getElementById('collectionCustomer').value = button.dataset.customer;
         document.getElementById('collectionName').textContent = button.dataset.name;
         document.getElementById('collectionDue').textContent = Number(button.dataset.due).toLocaleString('en-IN', {minimumFractionDigits: 2});
-        const amount = document.getElementById('collectionAmount'); amount.value = button.dataset.due; amount.max = button.dataset.due;
+        /*const amount = document.getElementById('collectionAmount'); amount.value = button.dataset.due; amount.max = button.dataset.due;*/
+        document.getElementById('collectionAmount').value = button.dataset.due;
         document.getElementById('collectModal').classList.add('is-open'); document.body.classList.add('modal-open');
     });
 });

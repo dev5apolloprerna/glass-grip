@@ -3,7 +3,7 @@
 return [
     'company_name' => env('INVOICE_COMPANY_NAME', 'Glass Grip'),
     'tagline' => env('INVOICE_TAGLINE', 'Quality products and professional service'),
-    'address' => env('INVOICE_ADDRESS', '10, Sahyog Estate, Opp Bank Of Maharashtra'),
+    'address' => env('INVOICE_ADDRESS', '1st Floor 10, Sahyog Estate,B/H. Anand Hotel, Narol Isanpur Highway'),
     'city' => env('INVOICE_CITY', 'Isanpur, Ahmedabad'),
     'state' => env('INVOICE_STATE', 'Gujarat'),
     'postcode' => env('INVOICE_POSTCODE', '382443'),
