@@ -132,9 +132,9 @@ class PaymentController extends Controller
             ->firstOrFail();
 
         $amount = (float) $data['amount'];
-        if ($amount > max(0, $customer->currentBalance()) + 0.01) {
+/*        if ($amount > max(0, $customer->currentBalance()) + 0.01) {
             return back()->withErrors(['amount' => 'Amount cannot exceed the customer balance (₹'.number_format(max(0, $customer->currentBalance()), 2).').'])->withInput();
-        }
+        }*/
 
         $payment = DB::transaction(function () use ($data, $customer, $invoice, $amount) {
            $payment = Payment::create([

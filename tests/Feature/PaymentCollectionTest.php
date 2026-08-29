@@ -80,6 +80,26 @@ class PaymentCollectionTest extends TestCase
             'customer_id' => 999, 'payment_date' => now()->toDateString(), 'amount' => 1, 'payment_method' => 'cash',
         ])->assertSessionHasErrors('customer_id');
     }
+        public function test_company_wise_payment_can_exceed_the_current_balance(): void
+    {
+        $employee = User::factory()->create(['role' => 'user', 'status' => 'active']);
+        $customer = Customer::create(['name' => 'Advance Customer', 'created_by' => $employee->id]);
+        $quotation = Quotation::create(['quotation_number' => 'Q-ADVANCE', 'customer_id' => $customer->id, 'user_id' => $employee->id, 'quotation_date' => now(), 'status' => 'approved', 'gst_applicable' => false, 'sub_total' => 100, 'gst_amount' => 0, 'total_amount' => 100]);
+        Invoice::create(['invoice_number' => 'I-ADVANCE', 'quotation_id' => $quotation->id, 'customer_id' => $customer->id, 'invoice_date' => now(), 'sub_total' => 100, 'gst_amount' => 0, 'total_amount' => 100]);
+        $customer->ledgers()->create(['transaction_date' => now(), 'amount' => 100, 'description' => 'Invoice I-ADVANCE', 'reference_type' => 'invoice', 'entered_by' => $employee->id, 'balance_after' => 100]);
+
+        $response = $this->actingAs($employee)->post(route('payment-collections.store'), [
+            'customer_id' => $customer->id,
+            'payment_date' => now()->toDateString(),
+            'amount' => 125,
+            'payment_method' => 'cash',
+        ]);
+
+        $response->assertRedirect(route('payment-collections.index'));
+        $response->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('payments', ['customer_id' => $customer->id, 'amount' => 125]);
+        $this->assertSame(-25.0, $customer->fresh()->currentBalance());
+    }
     public function test_collection_page_can_search_by_company_name(): void
     {
         $employee = User::factory()->create(['role' => 'user']);
