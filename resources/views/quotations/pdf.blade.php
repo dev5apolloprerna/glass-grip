@@ -52,6 +52,9 @@
         .product-table th:last-child, .product-table td:last-child { border-right:0; }
         .product-table td { height:4.8mm; border-top:1px solid #c7cdc4; border-right:1px solid #c7cdc4; padding:.3mm 1.4mm; font-size:12.5px; vertical-align:middle; }
         .center { text-align:center; } .right { text-align:right; }
+        .rolls-total-row td { height:4.8mm; border-top:1.4px solid #71905e; padding:.3mm 1.4mm; font-size:12.5px; font-weight:700; background:#eef3ea; }
+        .total-rolls-label { color:#2f6d16; }
+        .total-rolls-value { color:#2f6d16; }
         .bottom-layout { margin-top:1mm; }
         .terms-cell { float:left; width:55%; padding:1.5mm 5mm 0 1mm; }
         .totals-cell { float:left; width:42%; }
@@ -98,7 +101,7 @@
         <td class="logo-cell"><img src="{{ $logoPath }}" alt="GlassGrip Masking Tapes Logo"></td>
         <td class="address-cell"><span style="font-size:12px;">{!! config('invoice.address') !!}<br>{{ config('invoice.city') }} - {{ config('invoice.postcode') }}<br>{{ config('invoice.state') }}, India.</span></td>
         <td class="contact-cell">
-            <table class="icon-row"><tr><td class="icon">☎</td><td style="vertical-align:middle;font-size:15px;">{{ config('invoice.phone') ?: '+91 886647000' }}</td></tr><tr><td class="icon">✉</td><td style="vertical-align:middle;font-size:13px;">{{ config('invoice.email') ?: 'ankitgandhi8383@gmail.com' }}</td></tr></table>
+            <table class="icon-row"><tr><td class="icon">☎</td><td style="vertical-align:middle;font-size:15px;">{{ config('invoice.phone') ?: '+91 8866477000' }}</td></tr><tr><td class="icon">✉</td><td style="vertical-align:middle;font-size:13px;">{{ config('invoice.email') ?: 'ankitgandhi8383@gmail.com' }}</td></tr></table>
             <div class="contact-divider"></div>
             <table class="tax-table"><tr><td class="tax-label">PAN</td><td class="tax-colon">:</td><td>{{ config('invoice.pan_number') ?: 'ALTPG0235F' }}</td></tr><tr><td class="tax-label">GST No.</td><td class="tax-colon">:</td><td>{{ config('invoice.gst_number') ?: '24ALTPG0235F2ZD' }}</td></tr></table>
         </td>
@@ -163,6 +166,14 @@
                 </tr>@endforeach
                
             </tbody>
+            <tfoot>
+                <tr class="rolls-total-row">
+                    <td colspan="3" class="right total-rolls-label">Total Rolls</td>
+                    <td class="center total-rolls-value">{{ $quotation->items->sum('no_of_rolls') }}</td>
+                    <td colspan="2"></td>
+                </tr>
+            </tfoot>
+
         </table><br>
     <div class="bottom-layout">
             <div class="terms-cell">
