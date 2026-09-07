@@ -83,7 +83,7 @@
     <table class="header-table"><tr>
         <td class="logo-cell"><img src="{{ $logoPath }}" alt="GlassGrip Masking Tapes Logo"></td>
         <td class="contact-cell">
-            <div class="phone">☎ {{ config('invoice.phone') ?: '+91 886647000' }}</div>
+            <div class="phone">☎ {{ config('invoice.phone') ?: '+91 8866477000' }}</div>
             <div>✉ {{ config('invoice.email') ?: 'ankitgandhi8383@gmail.com' }}</div>
         </td>
     </tr></table>
