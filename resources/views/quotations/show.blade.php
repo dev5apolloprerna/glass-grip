@@ -173,7 +173,7 @@
     </div>
 
     @if(($quotation->isSent() || $quotation->status === 'approved') && !$quotation->invoice)
-        <div id="generateInvoiceModal" class="modal {{ $errors->hasAny(['invoice_number', 'other_reference']) ? 'is-open' : '' }}" role="dialog" aria-modal="true" aria-labelledby="generateInvoiceTitle" aria-hidden="{{ $errors->hasAny(['invoice_number', 'other_reference']) ? 'false' : 'true' }}">
+        <div id="generateInvoiceModal" class="modal {{ $errors->hasAny(['invoice_number', 'other_reference', 'invoice_date']) ? 'is-open' : '' }}" role="dialog" aria-modal="true" aria-labelledby="generateInvoiceTitle" aria-hidden="{{ $errors->hasAny(['invoice_number', 'other_reference', 'invoice_date']) ? 'false' : 'true' }}">
             <div class="modal-backdrop" data-modal-close></div>
             <div class="modal-dialog">
                 <div class="modal-header">
@@ -182,19 +182,27 @@
                 </div>
                 <form method="POST" action="{{ route('quotations.generate-invoice', $quotation) }}">
                     @csrf
-                    <div class="modal-body">
-                        <p class="text-muted">Enter an invoice number for sent quotation <strong>{{ $quotation->quotation_number }}</strong>.</p>
-                        <div class="form-group">
-                            <label for="invoice_number">Invoice Number <span class="text-danger">*</span></label>
-                            <input type="text" id="invoice_number" name="invoice_number" class="form-control" value="{{ old('invoice_number') }}" placeholder="Enter invoice number" maxlength="255" required autocomplete="off">
-                            @error('invoice_number')
-                                <small class="text-danger">{{ $message }}</small>
-                            @enderror
+                        <div class="modal-body">
+                            <p class="text-muted">Enter an invoice number for sent quotation <strong>{{ $quotation->quotation_number }}</strong>.</p>
+                            <div class="form-group">
+                                <label for="invoice_number">Invoice Number <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" id="invoice_number" name="invoice_number" class="form-control" value="{{ old('invoice_number') }}" placeholder="Enter invoice number" maxlength="255" required autocomplete="off">
+                                @error('invoice_number')
+                                    <small class="text-danger">{{ $message }}</small>
+                                @enderror
                         </div>
-                    <div class="form-group">
+                        <div class="form-group">
                             <label for="other_reference">Reference Number</label>
                             <input type="text" id="other_reference" name="other_reference" class="form-control" value="{{ old('other_reference') }}" placeholder="Enter reference number" maxlength="255" autocomplete="off">
                             @error('other_reference')
+                                <small class="text-danger">{{ $message }}</small>
+                            @enderror
+                        </div>
+                         <div class="form-group">
+                            <label for="invoice_date">Invoice Date <span class="text-danger">*</span></label>
+                            <input type="date" id="invoice_date" name="invoice_date" class="form-control" value="{{ old('invoice_date', now()->toDateString()) }}" required>
+                            @error('invoice_date')
                                 <small class="text-danger">{{ $message }}</small>
                             @enderror
                         </div>
