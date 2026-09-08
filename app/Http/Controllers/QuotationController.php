@@ -259,6 +259,7 @@ class QuotationController extends Controller
         $data = $request->validate([
             'invoice_number' => ['required', 'string', 'max:255', 'unique:invoices,invoice_number'],
             'other_reference' => ['nullable', 'string', 'max:255'],
+            'invoice_date' => ['required', 'date'],
         ]);
 
         DB::transaction(function () use ($quotation, $data) {
@@ -268,7 +269,7 @@ class QuotationController extends Controller
                 'other_reference' => $data['other_reference'] ?? null,
                 'quotation_id' => $quotation->id,
                 'customer_id' => $quotation->customer_id,
-                'invoice_date' => now()->toDateString(),
+                'invoice_date' => $data['invoice_date'],
                 'sub_total' => $quotation->sub_total,
                 'gst_amount' => $quotation->gst_amount,
                 'discount_amount' => $quotation->discount_amount,

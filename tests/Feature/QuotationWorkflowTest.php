@@ -35,7 +35,7 @@ class QuotationWorkflowTest extends TestCase
 
         $this->actingAs($user)->post(route('quotations.mark-sent', $quotation));
         $this->actingAs($user)->post(route('quotations.generate-invoice', $quotation), [
-            'invoice_number' => 'INV-CHARGES-1',
+            'invoice_date' => '2026-09-01',
         ]);
 
         $invoice = $quotation->fresh()->invoice;
@@ -54,7 +54,7 @@ class QuotationWorkflowTest extends TestCase
             'other_reference' => 'CUSTOMER-REF-42',
             'quotation_id' => $quotation->id,
             'customer_id' => $quotation->customer_id,
-            'invoice_date' => now()->toDateString(),
+            'invoice_date' => '2026-08-24',
             'sub_total' => 100,
             'total_amount' => 100,
         ]);
@@ -65,6 +65,7 @@ class QuotationWorkflowTest extends TestCase
         $this->assertStringContainsString('Reference No.', $html);
         $this->assertStringNotContainsString("Supplier's Ref.", $html);
         $this->assertStringContainsString('CUSTOMER-REF-42', $html);
+        $this->assertStringContainsString('24 Aug 2026', $html);
         $this->assertStringNotContainsString($quotation->quotation_number, $html);
         $this->assertStringContainsString('Sr. No.', $html);
         $this->assertStringContainsString('Description of Goods', $html);
@@ -101,11 +102,13 @@ class QuotationWorkflowTest extends TestCase
             ->post(route('quotations.generate-invoice', $quotation), [
                 'invoice_number' => ' INV-MANUAL-42 ',
                 'other_reference' => ' PO-REF-17 ',
+                'invoice_date' => '2026-08-25',
             ])
             ->assertRedirect(route('quotations.show', $quotation));
 
         $quotation->refresh();
         $this->assertSame('PO-REF-17', $quotation->invoice->other_reference);
+        $this->assertSame('2026-08-25', $quotation->invoice->invoice_date->toDateString());
         $this->assertNull($quotation->invoice->deliveryChallan);
     }
 
@@ -176,7 +179,9 @@ class QuotationWorkflowTest extends TestCase
             ->assertSee('Approve Quotation')
             ->assertSee('data-modal-open="generateInvoiceModal"', false)
             ->assertSee('name="invoice_number"', false)
-            ->assertSee('name="other_reference"', false);
+            ->assertSee('name="other_reference"', false)
+            ->assertSee('name="invoice_date"', false)
+            ->assertSee('value="'.now()->toDateString().'"', false);
     }
 
     public function test_sent_quotation_can_generate_an_invoice_without_approval(): void
@@ -186,7 +191,10 @@ class QuotationWorkflowTest extends TestCase
         $this->actingAs($user)->post(route('quotations.mark-sent', $quotation));
 
         $this->actingAs($user)
-            ->post(route('quotations.generate-invoice', $quotation), ['invoice_number' => 'INV-WITHOUT-APPROVAL'])
+            ->post(route('quotations.generate-invoice', $quotation), [
+                'invoice_number' => 'INV-WITHOUT-APPROVAL',
+                'invoice_date' => '2026-09-02',
+            ])
             ->assertRedirect(route('quotations.show', $quotation));
 
         $quotation->refresh();
@@ -230,7 +238,10 @@ class QuotationWorkflowTest extends TestCase
             ->assertDontSee('Collect Payment');
 
         $this->actingAs($user)
-            ->post(route('quotations.generate-invoice', $quotation), ['invoice_number' => 'INV-APPROVED-1'])
+            ->post(route('quotations.generate-invoice', $quotation), [
+                'invoice_number' => 'INV-APPROVED-1',
+                'invoice_date' => '2026-09-03',
+            ])
             ->assertRedirect(route('quotations.show', $quotation));
 
         $quotation->refresh();
@@ -254,6 +265,7 @@ class QuotationWorkflowTest extends TestCase
         $this->actingAs($user)->post(route('quotations.approve', $quotation));
         $this->actingAs($user)->post(route('quotations.generate-invoice', $quotation), [
             'invoice_number' => 'INV-DELIVERY-1',
+            'invoice_date' => '2026-09-04',
         ]);
 
         $quotation->refresh();
