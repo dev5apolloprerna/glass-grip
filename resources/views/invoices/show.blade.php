@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
-@section('title', 'Invoice ' . $invoice->invoice_number)
+@section('title', $invoice->typeLabel() . ' ' . $invoice->invoice_number)
 
 @section('content')
     <div class="card">
         <div class="card-header">
-            <h3>Invoice {{ $invoice->invoice_number }}</h3>
+            <h3>{{ $invoice->isGst() ? 'Invoice' : 'A Invoice' }} {{ $invoice->invoice_number }} <small class="text-muted">({{ $invoice->gst_amount > 0 ? 'with GST' : 'without GST' }} &middot; {{ rtrim(rtrim(number_format($invoice->split_percentage, 2), '0'), '.') }}%)</small></h3>
             <div>
-                <a href="{{ route('invoices.download', $invoice) }}" class="btn btn-primary btn-sm">Download PDF</a> @if($invoice->document_status !== 'invoice_approved')<form method="POST" action="{{ route('invoices.mark-sent',$invoice) }}" style="display:inline" data-confirm="Send and approve this invoice?">@csrf<button class="btn btn-success btn-sm">Send &amp; Approve</button></form>@endif @if($invoice->deliveryChallan)<a class="btn btn-secondary btn-sm" href="{{ route('delivery-challans.show',$invoice->deliveryChallan) }}">Delivery Challan</a>@else<form method="POST" action="{{ route('delivery-challans.store',$invoice) }}" style="display:inline">@csrf<button class="btn btn-secondary btn-sm">Create Delivery Challan</button></form>@endif
+                <a href="{{ route('invoices.download', $invoice) }}" class="btn btn-primary btn-sm">Download PDF</a> <a href="{{ route('invoices.edit', $invoice) }}" class="btn btn-secondary btn-sm">Edit</a> @if($invoice->document_status !== 'invoice_approved')<form method="POST" action="{{ route('invoices.mark-sent',$invoice) }}" style="display:inline" data-confirm="Send and approve this invoice?">@csrf<button class="btn btn-success btn-sm">Send &amp; Approve</button></form>@endif @if($invoice->deliveryChallan)<a class="btn btn-secondary btn-sm" href="{{ route('delivery-challans.show',$invoice->deliveryChallan) }}">Delivery Challan</a>@else<form method="POST" action="{{ route('delivery-challans.store',$invoice) }}" style="display:inline">@csrf<button class="btn btn-secondary btn-sm">Create Delivery Challan</button></form>@endif
                 <a href="{{ route('quotations.show', $invoice->quotation) }}" class="btn btn-secondary btn-sm">&larr; Back to Quotation</a>
             </div>
         </div>
@@ -20,6 +20,10 @@
                 <div>
                     <p class="text-muted mb-0">Invoice Date</p>
                     <p>{{ $invoice->invoice_date->format('d M Y') }}</p>
+                </div>
+                <div>
+                    <p class="text-muted mb-0">Reference No.</p>
+                    <p>{{ $invoice->other_reference ?: '-' }}</p>
                 </div>
                 <!-- <div>
                     <p class="text-muted mb-0">Quotation No.</p>
@@ -57,7 +61,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($invoice->quotation->items as $item)
+                    @foreach($invoice->details as $item)
                         <tr>
 <!--                             <td>{{ $item->product->name }}</td>
                             <td>{{ $item->despatch_to ?: '-' }}</td> -->

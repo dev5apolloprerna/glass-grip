@@ -105,12 +105,12 @@ class CustomerController extends Controller
     public function destroy(Customer $customer)
     {
         DB::transaction(function () use ($customer) {
-            $quotations = $customer->quotations()->with('invoice.payments')->get();
+            $quotations = $customer->quotations()->with('invoices.payments')->get();
 
             foreach ($quotations as $quotation) {
-                if ($quotation->invoice) {
-                    $quotation->invoice->payments()->delete();
-                    $quotation->invoice->delete();
+                foreach ($quotation->invoices as $invoice) {
+                    $invoice->payments()->delete();
+                    $invoice->delete();
                 }
                 $quotation->items()->delete();
                 $quotation->delete();

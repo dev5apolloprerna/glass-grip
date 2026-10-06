@@ -32,7 +32,8 @@ Route::middleware('guest')->group(function () {
     // Quotations - accessible to both roles (user creates/manages own, super_admin sees all)
     Route::resource('quotations', QuotationController::class);
     Route::post('quotations/{quotation}/approve', [QuotationController::class, 'approve'])->name('quotations.approve');
-        Route::post('quotations/{quotation}/generate-invoice', [QuotationController::class, 'generateInvoice'])->name('quotations.generate-invoice');
+    Route::get('quotations/{quotation}/generate-invoice', [QuotationController::class, 'createInvoice'])->name('quotations.create-invoice');
+    Route::post('quotations/{quotation}/generate-invoice', [QuotationController::class, 'generateInvoice'])->name('quotations.generate-invoice');
     Route::post('quotations/{quotation}/reject', [QuotationController::class, 'reject'])->name('quotations.reject');
     Route::post('quotations/{quotation}/duplicate', [QuotationController::class, 'duplicate'])->name('quotations.duplicate');
     Route::get('quotations/{quotation}/download', [QuotationController::class, 'download'])->name('quotations.download');
@@ -43,6 +44,8 @@ Route::middleware('guest')->group(function () {
 
     // Invoices
     Route::get('invoices/{invoice}', [InvoiceController::class, 'show'])->name('invoices.show');
+    Route::get('invoices/{invoice}/edit', [InvoiceController::class, 'edit'])->name('invoices.edit');
+    Route::put('invoices/{invoice}', [InvoiceController::class, 'update'])->name('invoices.update');
     Route::get('invoices/{invoice}/download', [InvoiceController::class, 'download'])->name('invoices.download');
     Route::post('invoices/{invoice}/mark-sent', [InvoiceController::class, 'markSent'])->name('invoices.mark-sent');
     Route::post('invoices/{invoice}/delivery-challan', [DeliveryChallanController::class, 'store'])->name('delivery-challans.store');

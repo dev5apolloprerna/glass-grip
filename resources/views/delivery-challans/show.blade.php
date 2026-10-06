@@ -22,7 +22,7 @@
 						<th>Total Mtr</th>
 					</tr>
 				</thead>
-				<tbody>@foreach($deliveryChallan->invoice->quotation->items as $item)<tr>
+				<tbody>@foreach($deliveryChallan->invoice->details as $item)<tr>
 						<td>{{ $item->product->name }}<br><small>{{ $item->product->description }}</small></td>
 						<td>{{ $item->product->hsn_code }}</td>
 						<td>{{ $item->size_mtr }}</td>

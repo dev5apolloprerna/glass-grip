@@ -22,33 +22,21 @@
                         @csrf
                         <button type="submit" class="btn btn-success btn-sm">Approve Quotation</button>
                     </form>
-                    @if(!$quotation->invoice)
-                        <button type="button" class="btn btn-success btn-sm" data-modal-open="generateInvoiceModal">Generate Invoice</button>
+                    @if($quotation->invoices->isEmpty())
+                        <a href="{{ route('quotations.create-invoice', $quotation) }}" class="btn btn-success btn-sm">Generate Invoice</a>
                     @endif
                 @endif
-                @if($quotation->isEditable())
+                @if($quotation->canEdit())
                     <a href="{{ route('quotations.edit', $quotation) }}" class="btn btn-secondary btn-sm">Edit</a>
-
+                @endif
+                @if($quotation->isEditable())
                     <form method="POST" action="{{ route('quotations.reject', $quotation) }}" style="display:inline;" data-confirm="Reject this quotation?">
                         @csrf
                         <button type="submit" class="btn btn-warning btn-sm">Reject</button>
                     </form>
                     @endif
-                @if(!$quotation->isEditable() && $quotation->invoice)
-                    <a href="{{ route('invoices.show', $quotation->invoice) }}" class="btn btn-primary btn-sm">View Invoice</a>
-                    <a href="{{ route('invoices.download', $quotation->invoice) }}" target="_blank" class="btn btn-secondary btn-sm">Download PDF</a>
-                    @if($quotation->invoice->deliveryChallan)
-                        <a href="{{ route('delivery-challans.show', $quotation->invoice->deliveryChallan) }}" class="btn btn-secondary btn-sm" target="_blank">Delivery Challan</a>
-                    @else
-                        <form method="POST" action="{{ route('delivery-challans.store', $quotation->invoice) }}" style="display:inline;">
-                            @csrf
-                            <button type="submit" class="btn btn-secondary btn-sm">Generate Delivery Challan</button>
-                        </form>
-                    @endif
-                @endif
-
-                @if($quotation->status === 'approved' && !$quotation->invoice)
-                    <button type="button" class="btn btn-success btn-sm" data-modal-open="generateInvoiceModal">Generate Invoice</button>
+                @if($quotation->status === 'approved' && $quotation->invoices->isEmpty())
+                    <a href="{{ route('quotations.create-invoice', $quotation) }}" class="btn btn-success btn-sm">Generate Invoice</a>
                 @endif
                 </div>
                 <div class="quotation-actions-group quotation-actions-manage">
@@ -104,7 +92,7 @@
                     </div>
                     <div>
                         <p class="text-muted mb-0">Invoice Number</p>
-                        <p>{{ $quotation->invoice->invoice_number ?? '-' }}</p>
+                        <p>{{ $quotation->invoices->pluck('invoice_number')->implode(', ') ?: '-' }}</p>
                     </div>
                     <div aria-hidden="true"></div>
                 </div>
@@ -164,7 +152,7 @@
                 @endif
                 <div class="row grand"><span>Net Amount</span><span>&#8377;{{ number_format($quotation->total_amount, 2) }}</span></div>
                 <div class="row"><span>Previous Due</span><span class="{{ $previousDue > 0 ? 'text-danger' : 'text-success' }}">&#8377;{{ number_format($previousDue, 2) }}</span></div>
-                 @if($quotation->invoice)
+                 @if($quotation->invoices->isNotEmpty())
                     <div class="row"><span>Amount Received</span><span class="text-success">&#8377;{{ number_format($totalPaid, 2) }}</span></div>
                     <div class="row"><span>Balance Due</span><span class="{{ $balanceDue > 0 ? 'text-danger' : 'text-success' }}">&#8377;{{ number_format($balanceDue, 2) }}</span></div>
                 @endif
@@ -172,46 +160,50 @@
         </div>
     </div>
 
-    @if(($quotation->isSent() || $quotation->status === 'approved') && !$quotation->invoice)
-        <div id="generateInvoiceModal" class="modal {{ $errors->hasAny(['invoice_number', 'other_reference', 'invoice_date']) ? 'is-open' : '' }}" role="dialog" aria-modal="true" aria-labelledby="generateInvoiceTitle" aria-hidden="{{ $errors->hasAny(['invoice_number', 'other_reference', 'invoice_date']) ? 'false' : 'true' }}">
-            <div class="modal-backdrop" data-modal-close></div>
-            <div class="modal-dialog">
-                <div class="modal-header">
-                    <h3 id="generateInvoiceTitle">Generate Invoice</h3>
-                    <button type="button" class="modal-close" data-modal-close aria-label="Close">&times;</button>
-                </div>
-                <form method="POST" action="{{ route('quotations.generate-invoice', $quotation) }}">
-                    @csrf
-                        <div class="modal-body">
-                            <p class="text-muted">Enter an invoice number for sent quotation <strong>{{ $quotation->quotation_number }}</strong>.</p>
-                            <div class="form-group">
-                                <label for="invoice_number">Invoice Number <span class="text-danger">*</span>
-                                </label>
-                                <input type="text" id="invoice_number" name="invoice_number" class="form-control" value="{{ old('invoice_number') }}" placeholder="Enter invoice number" maxlength="255" required autocomplete="off">
-                                @error('invoice_number')
-                                    <small class="text-danger">{{ $message }}</small>
-                                @enderror
-                        </div>
-                        <div class="form-group">
-                            <label for="other_reference">Reference Number</label>
-                            <input type="text" id="other_reference" name="other_reference" class="form-control" value="{{ old('other_reference') }}" placeholder="Enter reference number" maxlength="255" autocomplete="off">
-                            @error('other_reference')
-                                <small class="text-danger">{{ $message }}</small>
-                            @enderror
-                        </div>
-                         <div class="form-group">
-                            <label for="invoice_date">Invoice Date <span class="text-danger">*</span></label>
-                            <input type="date" id="invoice_date" name="invoice_date" class="form-control" value="{{ old('invoice_date', now()->toDateString()) }}" required>
-                            @error('invoice_date')
-                                <small class="text-danger">{{ $message }}</small>
-                            @enderror
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-modal-close>Cancel</button>
-                        <button type="submit" class="btn btn-success">Generate Invoice</button>
-                    </div>
-                </form>
+    @if($quotation->invoices->isNotEmpty())
+        <div class="card">
+            <div class="card-header"><h3>Invoices</h3></div>
+            <div class="card-body table-wrap">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Invoice No.</th>
+                            <th>Invoice Date</th>
+                            <th>Reference No.</th>
+                            <th class="text-right">Share</th>
+                            <th class="text-right">Value</th>
+                            <th class="text-right">Balance Due</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($quotation->invoices as $inv)
+                            <tr>
+                                <td><span class="pill {{ $inv->isGst() ? 'pill-approved' : 'pill-sent' }}">{{ $inv->typeLabel() }}</span></td>
+                                <td>{{ $inv->invoice_number }}</td>
+                                <td>{{ $inv->invoice_date->format('d M Y') }}</td>
+                                <td>{{ $inv->other_reference ?: '-' }}</td>
+                                <td class="text-right">{{ rtrim(rtrim(number_format($inv->split_percentage, 2), '0'), '.') }}%</td>
+                                <td class="text-right">&#8377;{{ number_format($inv->total_amount, 2) }}</td>
+                                <td class="text-right">&#8377;{{ number_format($inv->balanceDue(), 2) }}</td>
+                                <td>
+                                    <a href="{{ route('invoices.show', $inv) }}" class="btn btn-primary btn-sm">View</a>
+                                    <a href="{{ route('invoices.download', $inv) }}" target="_blank" class="btn btn-secondary btn-sm">PDF</a>
+                                    <a href="{{ route('invoices.edit', $inv) }}" class="btn btn-secondary btn-sm">Edit</a>
+                                    @if($inv->deliveryChallan)
+                                        <a href="{{ route('delivery-challans.show', $inv->deliveryChallan) }}" class="btn btn-secondary btn-sm" target="_blank">Delivery Challan</a>
+                                    @else
+                                        <form method="POST" action="{{ route('delivery-challans.store', $inv) }}" style="display:inline;">
+                                            @csrf
+                                            <button type="submit" class="btn btn-secondary btn-sm">Generate Delivery Challan</button>
+                                        </form>
+                                    @endif
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
         </div>
     @endif
