@@ -242,7 +242,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach($invoice->quotation->items as $i => $item)
+            @foreach($invoice->details as $i => $item)
                 <tr>
                     <td>{{ $i + 1 }}</td>
                     <td class="desc-cell">

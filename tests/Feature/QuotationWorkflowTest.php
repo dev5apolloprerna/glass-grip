@@ -177,8 +177,15 @@ class QuotationWorkflowTest extends TestCase
             ->get(route('quotations.show', $quotation))
             ->assertOk()
             ->assertSee('Approve Quotation')
-            ->assertSee('data-modal-open="generateInvoiceModal"', false)
+            ->assertSee(route('quotations.create-invoice', $quotation), false);
+
+        // Generate Invoice is now a separate page (no popup).
+        $this->actingAs($user)
+            ->get(route('quotations.create-invoice', $quotation))
+            ->assertOk()
             ->assertSee('name="invoice_number"', false)
+            ->assertSee('name="invoice_percentage"', false)
+            ->assertSee('name="a_invoice_percentage"', false)
             ->assertSee('name="other_reference"', false)
             ->assertSee('name="invoice_date"', false)
             ->assertSee('value="'.now()->toDateString().'"', false);

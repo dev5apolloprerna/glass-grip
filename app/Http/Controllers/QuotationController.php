@@ -10,6 +10,7 @@ use App\Models\NumberSetting;
 use App\Models\Product;
 use App\Models\Quotation;
 use App\Models\QuotationItem;
+use App\Services\InvoiceSplitter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -92,14 +93,15 @@ class QuotationController extends Controller
     public function show(Quotation $quotation)
     {
         $this->authorizeAccess($quotation);
-        $quotation->load(['items.product', 'customer', 'user', 'approvedBy', 'invoice.payments']);
+        $quotation->load(['items.product', 'customer', 'user', 'approvedBy', 'invoice', 'invoices.payments', 'invoices.deliveryChallan']);
 
-        $totalPaid = $quotation->invoice?->totalPaid();
-        $balanceDue = $quotation->invoice?->balanceDue();
+        $hasInvoices = $quotation->invoices->isNotEmpty();
+        $totalPaid = $hasInvoices ? $quotation->invoices->sum(fn ($inv) => $inv->totalPaid()) : null;
+        $balanceDue = $hasInvoices ? $quotation->invoices->sum(fn ($inv) => $inv->balanceDue()) : null;
         $previousDue = $quotation->customer->currentBalance();
-        
-        if ($quotation->invoice) {
-            $previousDue -= (float) $quotation->invoice->total_amount;
+
+        if ($hasInvoices) {
+            $previousDue -= (float) $quotation->invoices->sum('total_amount');
         }
 
         return view('quotations.show', compact('quotation', 'totalPaid', 'balanceDue', 'previousDue'));
@@ -149,8 +151,8 @@ class QuotationController extends Controller
     {
         $this->authorizeAccess($quotation);
 
-        if (! $quotation->isEditable()) {
-            return redirect()->route('quotations.show', $quotation)->with('error', 'Approved quotations cannot be edited.');
+        if (! $quotation->canEdit()) {
+            return redirect()->route('quotations.show', $quotation)->with('error', 'Quotation cannot be edited after the invoice is generated.');
         }
 
         $quotation->load('items.product');
@@ -164,8 +166,8 @@ class QuotationController extends Controller
     {
         $this->authorizeAccess($quotation);
 
-        if (! $quotation->isEditable()) {
-            return redirect()->route('quotations.show', $quotation)->with('error', 'Approved quotations cannot be edited.');
+        if (! $quotation->canEdit()) {
+            return redirect()->route('quotations.show', $quotation)->with('error', 'Quotation cannot be edited after the invoice is generated.');
         }
 
         $data = $this->validateData($request);
@@ -239,16 +241,29 @@ class QuotationController extends Controller
             ->with('success', 'Quotation approved successfully. You can now generate the invoice.');
     }
 
+    /**
+     * New page (instead of popup) to generate the invoice(s).
+     * Invoice % (with GST) + A Invoice % (without GST) must total 100.
+     */
+    public function createInvoice(Quotation $quotation)
+    {
+        $this->authorizeAccess($quotation);
+
+        if ($error = $this->invoiceGenerationError($quotation)) {
+            return redirect()->route('quotations.show', $quotation)->with('error', $error);
+        }
+
+        $quotation->load(['items.product', 'customer']);
+
+        return view('quotations.generate-invoice', compact('quotation'));
+    }
+
     public function generateInvoice(Request $request, Quotation $quotation)
     {
         $this->authorizeAccess($quotation);
 
-        if (! $quotation->isSent() && $quotation->status !== 'approved') {
-            return back()->with('error', 'Send the quotation before generating an invoice.');
-        }
-
-        if ($quotation->invoice()->exists()) {
-            return back()->with('error', 'Invoice has already been generated.');
+        if ($error = $this->invoiceGenerationError($quotation)) {
+            return redirect()->route('quotations.show', $quotation)->with('error', $error);
         }
 
         $request->merge([
@@ -257,55 +272,91 @@ class QuotationController extends Controller
         ]);
 
         $data = $request->validate([
+            'invoice_percentage' => ['required', 'numeric', 'min:0', 'max:100'],
+            'a_invoice_percentage' => ['required', 'numeric', 'min:0', 'max:100'],
+            // One common invoice number for both the Invoice and the A Invoice.
             'invoice_number' => ['required', 'string', 'max:255', 'unique:invoices,invoice_number'],
             'other_reference' => ['nullable', 'string', 'max:255'],
             'invoice_date' => ['required', 'date'],
         ]);
 
-        DB::transaction(function () use ($quotation, $data) {
+        $gstPct = round((float) $data['invoice_percentage'], 2);
+        $aPct = round((float) $data['a_invoice_percentage'], 2);
 
-            $invoice = Invoice::create([
-                'invoice_number' => trim($data['invoice_number']),
-                'other_reference' => $data['other_reference'] ?? null,
-                'quotation_id' => $quotation->id,
-                'customer_id' => $quotation->customer_id,
-                'invoice_date' => $data['invoice_date'],
-                'sub_total' => $quotation->sub_total,
-                'gst_amount' => $quotation->gst_amount,
-                'discount_amount' => $quotation->discount_amount,
-                'admin_charges' => $quotation->admin_charges,
-                'material_handling_charges' => $quotation->material_handling_charges,
-                'round_off' => $quotation->round_off,
-                'total_amount' => $quotation->total_amount,
-                'shipping_address' => $quotation->shipping_address,
-                'shipping_address_line_2' => $quotation->shipping_address_line_2,
-                'shipping_state' => $quotation->shipping_state,
-                'shipping_city' => $quotation->shipping_city,
-                'shipping_pincode' => $quotation->shipping_pincode,
-                'cgst_amount' => $quotation->cgst_amount,
-                'sgst_amount' => $quotation->sgst_amount,
-                'igst_amount' => $quotation->igst_amount,
-                'document_status' => 'invoice_ready',
-            ]);
+        if (abs(($gstPct + $aPct) - 100) > 0.001) {
+            return back()->withErrors(['invoice_percentage' => 'Invoice % + A Invoice % must be exactly 100 (now ' . ($gstPct + $aPct) . ').'])->withInput();
+        }
+        $toCreate = [];
+        if ($gstPct > 0) {
+            $toCreate[] = [Invoice::TYPE_GST, $gstPct];
+        }
+        if ($aPct > 0) {
+            $toCreate[] = [Invoice::TYPE_NON_GST, $aPct];
+        }
 
+        DB::transaction(function () use ($quotation, $data, $toCreate) {
             $customer = $quotation->customer;
-            $newBalance = $customer->currentBalance() + (float) $quotation->total_amount;
 
-            CustomerLedger::create([
-                'customer_id' => $customer->id,
-                'transaction_date' => $invoice->invoice_date,
-                'amount' => $quotation->total_amount,
-                'description' => 'Invoice ' . $invoice->invoice_number,
-                'reference_type' => 'invoice',
-                'reference_id' => $invoice->id,
-                'entered_by' => Auth::id(),
-                'balance_after' => $newBalance,
-            ]);
+            foreach ($toCreate as [$type, $pct]) {
+                $amounts = InvoiceSplitter::amounts($quotation, $type, $pct);
+
+                $invoice = Invoice::create([
+                    'invoice_number' => $data['invoice_number'],
+                    'invoice_type' => $type,
+                    'split_percentage' => $pct,
+                    'other_reference' => $data['other_reference'] ?: null,
+                    'quotation_id' => $quotation->id,
+                    'customer_id' => $quotation->customer_id,
+                    'invoice_date' => $data['invoice_date'],
+                    ...$amounts,
+                    'shipping_address' => $quotation->shipping_address,
+                    'shipping_address_line_2' => $quotation->shipping_address_line_2,
+                    'shipping_state' => $quotation->shipping_state,
+                    'shipping_city' => $quotation->shipping_city,
+                    'shipping_pincode' => $quotation->shipping_pincode,
+                    'document_status' => 'invoice_ready',
+                ]);
+
+                // Save the line items of this invoice.
+                $invoice->details()->createMany(InvoiceSplitter::details($quotation, $type, $pct));
+
+                CustomerLedger::create([
+                    'customer_id' => $customer->id,
+                    'transaction_date' => $invoice->invoice_date,
+                    'amount' => $invoice->total_amount,
+                    'description' => ($invoice->isGst() ? 'Invoice ' : 'A Invoice ') . $invoice->invoice_number,
+                    'reference_type' => 'invoice',
+                    'reference_id' => $invoice->id,
+                    'entered_by' => Auth::id(),
+                    'balance_after' => $customer->currentBalance() + (float) $invoice->total_amount,
+                ]);
+            }
         });
 
-        return redirect()->route('quotations.show', $quotation)
-            ->with('success', 'Invoice generated successfully. You can now download the invoice PDF or create a delivery challan.');
-     }
+        $message = count($toCreate) === 2
+            ? 'Invoice and A Invoice generated successfully.'
+            : 'Invoice generated successfully.';
+
+        return redirect()->route('quotations.show', $quotation)->with('success', $message);
+    }
+
+    private function invoiceGenerationError(Quotation $quotation): ?string
+    {
+        if (! $quotation->isSent() && $quotation->status !== 'approved') {
+            return 'Send the quotation before generating an invoice.';
+        }
+
+        if ($quotation->invoices()->exists()) {
+            return 'Invoice has already been generated.';
+        }
+
+        if ($quotation->items()->count() === 0) {
+            return 'Cannot generate an invoice for a quotation with no items.';
+        }
+
+        return null;
+    }
+
     public function reject(Quotation $quotation)
     {
         $this->authorizeAccess($quotation);

@@ -11,6 +11,8 @@ class Invoice extends Model
 
     protected $fillable = [
         'invoice_number',
+        'invoice_type',
+        'split_percentage',
         'other_reference',
         'quotation_id',
         'customer_id',
@@ -30,6 +32,7 @@ class Invoice extends Model
     {
         return [
             'invoice_date' => 'date',
+            'split_percentage' => 'decimal:2',
             'sub_total' => 'decimal:2',
             'gst_amount' => 'decimal:2',
             'cgst_amount' => 'decimal:2', 'sgst_amount' => 'decimal:2', 'igst_amount' => 'decimal:2',
@@ -39,6 +42,51 @@ class Invoice extends Model
             'round_off' => 'decimal:2',
             'total_amount' => 'decimal:2',
         ];
+    }
+
+    const TYPE_GST = 'gst';         // General invoice (GST same as quotation)
+    const TYPE_NON_GST = 'non_gst'; // A Invoice (without GST)
+
+    public function isGst(): bool
+    {
+        return ($this->invoice_type ?? self::TYPE_GST) === self::TYPE_GST;
+    }
+
+    public function typeLabel(): string
+    {
+        return $this->isGst() ? 'Invoice' : 'A Invoice';
+    }
+
+    public function documentTitle(): string
+    {
+        return $this->isGst() && (float) $this->gst_amount > 0 ? 'Tax Invoice' : 'Invoice';
+    }
+
+    /**
+     * Share of a quotation value on THIS invoice (nothing is re-calculated).
+     * Invoice gets p%, A Invoice gets the exact remainder, so
+     * Invoice + A Invoice always equals the quotation value.
+     */
+    public static function splitValue(float $value, string $type, float $pct): float
+    {
+        if ($pct >= 100) {
+            return round($value, 2);
+        }
+
+        return $type === self::TYPE_GST
+            ? round($value * $pct / 100, 2)
+            : round($value - round($value * (100 - $pct) / 100, 2), 2);
+    }
+
+    public function share(float $value): float
+    {
+        return self::splitValue($value, $this->invoice_type ?? self::TYPE_GST, (float) ($this->split_percentage ?? 100));
+    }
+
+    /** Line items of this invoice (stored in invoice_details). */
+    public function details()
+    {
+        return $this->hasMany(InvoiceDetail::class)->orderBy('id');
     }
 
     public function quotation()

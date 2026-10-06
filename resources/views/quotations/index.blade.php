@@ -55,8 +55,10 @@
                                 <td class="text-right">&#8377;{{ number_format($q->total_amount, 2) }}</td>
                                 <td>
                                     <a href="{{ route('quotations.show', $q) }}" class="btn btn-secondary btn-sm">View</a>
-                                    @if($q->isEditable())
+                                    @if($q->canEdit())
                                         <a href="{{ route('quotations.edit', $q) }}" class="btn btn-secondary btn-sm">Edit</a>
+                                    @endif
+                                    @if($q->isEditable())
                                         <form method="POST" action="{{ route('quotations.reject', $q) }}" style="display:inline;" data-confirm="Reject this quotation?">
                                             @csrf
                                             <button type="submit" class="btn btn-warning btn-sm">Reject</button>

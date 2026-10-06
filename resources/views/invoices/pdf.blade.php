@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Tax Invoice {{ $invoice->invoice_number }}</title>
+    <title>{{ $invoice->documentTitle() }} {{ $invoice->invoice_number }}</title>
     <style>
         :root { --green:#4f8128; --green-dark:#2f6d16; --green-deep:#285e10; --ink:#141b21; --paper:#fff; }
         * { box-sizing: border-box; }
@@ -117,7 +117,7 @@
 
     {{-- TITLE + INVOICE META (all fields from the original document-header table) --}}
     <table class="doc-top-layout"><tr>
-        <td class="doc-title-cell"><div class="doc-title">Tax Invoice</div></td>
+        <td class="doc-title-cell"><div class="doc-title">{{ $invoice->documentTitle() }}</div></td>
         <td class="doc-meta-cell">
             <table class="doc-meta">
                 <tr><td class="label">Invoice No.</td><td class="colon">:</td><td class="line"><strong>{{ $invoice->invoice_number }}</strong></td></tr>
@@ -141,7 +141,7 @@
                         <tr><td class="label">City</td><td class="colon">:</td><td class="line">{{ $customer->city ?: '-' }}</td></tr>
                         <tr><td class="label">State</td><td class="colon">:</td><td class="line">{{ $customer->state ?: '-' }}</td></tr>
                         <tr><td class="label">Pincode</td><td class="colon">:</td><td class="line">{{ $customer->pincode ?: '-' }}</td></tr>
-                        @if($invoice->quotation->gst_applicable)
+                        @if($invoice->isGst())
                         <tr><td class="label">GST No.</td><td class="colon">:</td><td class="line">{{ $customer->gst_number ?: '-' }}</td></tr>
                         @endif
                     </table>
@@ -181,7 +181,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach($invoice->quotation->items as $i => $item)
+            @foreach($invoice->details as $i => $item)
                 <tr>
                     <td class="text-center">{{ $i + 1 }}</td>
                     <td>
@@ -250,7 +250,7 @@
             {{-- Total --}}
             <tr class="total-row">
                 <td colspan="3" class="text-right">Total</td>
-                <td class="text-right">{{ $invoice->quotation->items->sum('no_of_rolls') }}</td>
+                <td class="text-right">{{ $invoice->details->sum('no_of_rolls') }}</td>
                 <td></td>
                 <td class="text-right">Net Amount : {{ number_format($invoice->total_amount, 2) }}</td>
             </tr>

@@ -70,9 +70,38 @@ class Quotation extends Model
         return $this->hasMany(QuotationItem::class);
     }
 
+    /** First invoice (GST invoice is created first) - kept for existing code. */
     public function invoice()
     {
-        return $this->hasOne(Invoice::class);
+        return $this->hasOne(Invoice::class)->orderBy('id');
+    }
+
+    /** All invoices of this quotation: GST invoice + A invoice. */
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class)->orderBy('id');
+    }
+
+    public function hasInvoice(): bool
+    {
+        if ($this->relationLoaded('invoices')) {
+            return $this->invoices->isNotEmpty();
+        }
+
+        if ($this->relationLoaded('invoice')) {
+            return $this->invoice !== null;
+        }
+
+        return $this->invoices()->exists();
+    }
+
+    /**
+     * Quotation can be edited (even after it is sent / approved)
+     * until an invoice is generated. Rejected quotations stay locked.
+     */
+    public function canEdit(): bool
+    {
+        return $this->status !== 'rejected' && ! $this->hasInvoice();
     }
 
     public function isEditable(): bool
