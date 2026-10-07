@@ -100,6 +100,54 @@
         </div>
     </div>
 
+@if($quotation->invoices->isNotEmpty())
+        <div class="card">
+            <div class="card-header"><h3>Invoices</h3></div>
+            <div class="card-body table-wrap">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Invoice No.</th>
+                            <th>Invoice Date</th>
+                            <th>Reference No.</th>
+                            <th class="text-right">Share</th>
+                            <th class="text-right">Value</th>
+                            <th class="text-right">Balance Due</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($quotation->invoices as $inv)
+                            <tr>
+                                <td><span class="pill {{ $inv->isGst() ? 'pill-approved' : 'pill-sent' }}">{{ $inv->typeLabel() }}</span></td>
+                                <td>{{ $inv->invoice_number }}</td>
+                                <td>{{ $inv->invoice_date->format('d M Y') }}</td>
+                                <td>{{ $inv->other_reference ?: '-' }}</td>
+                                <td class="text-right">{{ rtrim(rtrim(number_format($inv->split_percentage, 2), '0'), '.') }}%</td>
+                                <td class="text-right">&#8377;{{ number_format($inv->total_amount, 2) }}</td>
+                                <td class="text-right">&#8377;{{ number_format($inv->balanceDue(), 2) }}</td>
+                                <td>
+                                    <a href="{{ route('invoices.show', $inv) }}" class="btn btn-primary btn-sm">View</a>
+                                    <a href="{{ route('invoices.download', $inv) }}" target="_blank" class="btn btn-secondary btn-sm">PDF</a>
+                                    <a href="{{ route('invoices.edit', $inv) }}" class="btn btn-secondary btn-sm">Edit</a>
+                                    @if($inv->deliveryChallan)
+                                        <a href="{{ route('delivery-challans.show', $inv->deliveryChallan) }}" class="btn btn-secondary btn-sm" target="_blank">Delivery Challan</a>
+                                    @else
+                                        <form method="POST" action="{{ route('delivery-challans.store', $inv) }}" style="display:inline;">
+                                            @csrf
+                                            <button type="submit" class="btn btn-secondary btn-sm">Generate Delivery Challan</button>
+                                        </form>
+                                    @endif
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    @endif
+    
     <div class="card">
         <div class="card-header"><h3>Products</h3></div>
         <div class="card-body table-wrap">
@@ -160,52 +208,6 @@
         </div>
     </div>
 
-    @if($quotation->invoices->isNotEmpty())
-        <div class="card">
-            <div class="card-header"><h3>Invoices</h3></div>
-            <div class="card-body table-wrap">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Type</th>
-                            <th>Invoice No.</th>
-                            <th>Invoice Date</th>
-                            <th>Reference No.</th>
-                            <th class="text-right">Share</th>
-                            <th class="text-right">Value</th>
-                            <th class="text-right">Balance Due</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($quotation->invoices as $inv)
-                            <tr>
-                                <td><span class="pill {{ $inv->isGst() ? 'pill-approved' : 'pill-sent' }}">{{ $inv->typeLabel() }}</span></td>
-                                <td>{{ $inv->invoice_number }}</td>
-                                <td>{{ $inv->invoice_date->format('d M Y') }}</td>
-                                <td>{{ $inv->other_reference ?: '-' }}</td>
-                                <td class="text-right">{{ rtrim(rtrim(number_format($inv->split_percentage, 2), '0'), '.') }}%</td>
-                                <td class="text-right">&#8377;{{ number_format($inv->total_amount, 2) }}</td>
-                                <td class="text-right">&#8377;{{ number_format($inv->balanceDue(), 2) }}</td>
-                                <td>
-                                    <a href="{{ route('invoices.show', $inv) }}" class="btn btn-primary btn-sm">View</a>
-                                    <a href="{{ route('invoices.download', $inv) }}" target="_blank" class="btn btn-secondary btn-sm">PDF</a>
-                                    <a href="{{ route('invoices.edit', $inv) }}" class="btn btn-secondary btn-sm">Edit</a>
-                                    @if($inv->deliveryChallan)
-                                        <a href="{{ route('delivery-challans.show', $inv->deliveryChallan) }}" class="btn btn-secondary btn-sm" target="_blank">Delivery Challan</a>
-                                    @else
-                                        <form method="POST" action="{{ route('delivery-challans.store', $inv) }}" style="display:inline;">
-                                            @csrf
-                                            <button type="submit" class="btn btn-secondary btn-sm">Generate Delivery Challan</button>
-                                        </form>
-                                    @endif
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    @endif
+    
 @endsection
 

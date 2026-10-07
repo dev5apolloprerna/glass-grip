@@ -23,8 +23,8 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="invoice_number">Invoice Number <span class="text-danger">*</span></label>
-                        <input type="text" id="invoice_number" name="invoice_number" class="form-control" value="{{ old('invoice_number', $invoice->invoice_number) }}" maxlength="255" required autocomplete="off">
-                        <div class="form-hint">Number, date and reference are common &mdash; they are updated on both the Invoice and the A Invoice.</div>
+                        <input type="text" id="invoice_number" name="invoice_number" class="form-control" value="{{ old('invoice_number', \App\Models\Invoice::baseNumber($invoice->invoice_number)) }}" maxlength="255" required autocomplete="off">
+                        <div class="form-hint">Number, date and reference are common &mdash; they are updated on both invoices. The A Invoice automatically gets <strong>-A</strong> (e.g. INV-002 / INV-002-A).</div>
                         @error('invoice_number')<small class="text-danger">{{ $message }}</small>@enderror
                     </div>
                     <div class="form-group">

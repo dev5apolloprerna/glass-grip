@@ -9,14 +9,17 @@ use App\Models\Quotation;
  * Splits one quotation into an Invoice (p%) and an A Invoice (100 - p%).
  *
  * Nothing is re-calculated - every figure is taken from the saved quotation:
- *  - item amounts, sub total, discount, admin + material handling charges -> split by %
- *  - Invoice  : p% of the quotation's CGST / SGST / IGST (same GST as the quotation)
- *  - A Invoice: no GST
- *  - each invoice is rounded to the nearest rupee.
+ *  - item amounts, sub total, discount, admin + material handling charges,
+ *    CGST / SGST / IGST -> ALL split by the given %
+ *  - Invoice  : p% of every figure
+ *  - A Invoice: the exact remainder of every figure, and its total is
+ *    (quotation net amount - Invoice total), so
+ *    Invoice + A Invoice = quotation Net Amount, always (no rounding gap).
  *
- * Example: quotation 36,000 + GST 6,480 = 42,480, split 60 / 40
- *  - Invoice   : 21,600 + GST 3,888 = 25,488
- *  - A Invoice : 14,400 (no GST)
+ * Example: Net 2,66,680 (taxable 2,26,000 + CGST 20,340 + SGST 20,340), 65 / 35
+ *  - Invoice   : 1,46,900 + 26,442 GST = 1,73,342
+ *  - A Invoice :   79,100 + 14,238 GST =   93,338
+ *  - Total     :                         2,66,680
  */
 class InvoiceSplitter
 {
@@ -32,14 +35,21 @@ class InvoiceSplitter
         $handling = $split($quotation->material_handling_charges);
         $taxable = round($subTotal - $discount + $admin + $handling, 2);
 
-        $isGst = $type === Invoice::TYPE_GST;
-        $cgst = $isGst ? $split($quotation->cgst_amount) : 0.0;
-        $sgst = $isGst ? $split($quotation->sgst_amount) : 0.0;
-        $igst = $isGst ? $split($quotation->igst_amount) : 0.0;
+        // GST is split by % on BOTH invoices so the totals match the quotation.
+        $cgst = $split($quotation->cgst_amount);
+        $sgst = $split($quotation->sgst_amount);
+        $igst = $split($quotation->igst_amount);
         $gst = round($cgst + $sgst + $igst, 2);
 
         $beforeRounding = $taxable + $gst;
-        $total = round($beforeRounding);
+
+        if ($type === Invoice::TYPE_NON_GST && $percentage < 100) {
+            // A Invoice takes whatever is left of the quotation's net amount.
+            $invoiceTotal = self::amounts($quotation, Invoice::TYPE_GST, round(100 - $percentage, 2))['total_amount'];
+            $total = round((float) $quotation->total_amount - $invoiceTotal, 2);
+        } else {
+            $total = round($beforeRounding);
+        }
 
         return [
             'sub_total' => $subTotal,

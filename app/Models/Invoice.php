@@ -44,8 +44,29 @@ class Invoice extends Model
         ];
     }
 
-    const TYPE_GST = 'gst';         // General invoice (GST same as quotation)
-    const TYPE_NON_GST = 'non_gst'; // A Invoice (without GST)
+    const TYPE_GST = 'gst';         // General invoice
+    const TYPE_NON_GST = 'non_gst'; // A Invoice
+
+    /** Suffix added to the A Invoice number, e.g. INV-002 -> INV-002-A */
+    const A_SUFFIX = '-A';
+
+    /** Base number without the A suffix: "INV-002-A" -> "INV-002". */
+    public static function baseNumber(string $number): string
+    {
+        $number = trim($number);
+
+        return str_ends_with(strtoupper($number), self::A_SUFFIX)
+            ? substr($number, 0, -strlen(self::A_SUFFIX))
+            : $number;
+    }
+
+    /** Invoice number for a type: Invoice -> INV-002, A Invoice -> INV-002-A. */
+    public static function numberFor(string $base, string $type): string
+    {
+        $base = self::baseNumber($base);
+
+        return $type === self::TYPE_NON_GST ? $base . self::A_SUFFIX : $base;
+    }
 
     public function isGst(): bool
     {
