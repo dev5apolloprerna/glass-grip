@@ -13,6 +13,7 @@
         'cgst' => (float) $quotation->cgst_amount,
         'sgst' => (float) $quotation->sgst_amount,
         'igst' => (float) $quotation->igst_amount,
+        'net' => (float) $quotation->total_amount,
     ];
     $q = $quotation;
     $qTaxable = $q->sub_total - $q->discount_amount + $q->admin_charges + $q->material_handling_charges;
@@ -44,7 +45,7 @@
                     <div class="form-group">
                         <label for="invoice_number">Invoice Number <span class="text-danger">*</span></label>
                         <input type="text" id="invoice_number" name="invoice_number" class="form-control" value="{{ old('invoice_number') }}" placeholder="Enter invoice number" maxlength="255" required autocomplete="off">
-                        <div class="form-hint">Same number is used on the Invoice and the A Invoice.</div>
+                        <div class="form-hint">Enter the base number (e.g. INV-002). The A Invoice automatically gets <strong>-A</strong> (INV-002-A).</div>
                     </div>
                     <div class="form-group">
                         <label for="invoice_date">Invoice Date <span class="text-danger">*</span></label>
@@ -62,8 +63,8 @@
                             <tr>
                                 <th style="width:24%"></th>
                                 <th class="text-right">Quotation</th>
-                                <th class="text-right">Invoice <small>({{ $q->gst_amount > 0 ? 'with GST' : 'no GST' }})</small></th>
-                                <th class="text-right">A Invoice <small>(without GST)</small></th>
+                                <th class="text-right">Invoice</th>
+                                <th class="text-right">A Invoice</th>
                                 <th class="text-right">Invoice + A Invoice</th>
                             </tr>
                         </thead>
@@ -79,7 +80,7 @@
                             <tr data-row="discount"><td>Discount</td><td class="text-right">{{ $m($q->discount_amount) }}</td><td class="text-right" data-v="gst.discount"></td><td class="text-right" data-v="a.discount"></td><td class="text-right" data-v="t.discount"></td></tr>
                             <tr data-row="charges"><td>Admin + Material Handling Charges</td><td class="text-right">{{ $m($q->admin_charges + $q->material_handling_charges) }}</td><td class="text-right" data-v="gst.charges"></td><td class="text-right" data-v="a.charges"></td><td class="text-right" data-v="t.charges"></td></tr>
                             <tr><td>Taxable Amount</td><td class="text-right">{{ $m($qTaxable) }}</td><td class="text-right" data-v="gst.taxable"></td><td class="text-right" data-v="a.taxable"></td><td class="text-right" data-v="t.taxable"></td></tr>
-                            <tr @unless($q->gst_amount > 0) style="display:none" @endunless><td>GST ({{ $isCgst ? 'CGST 9% + SGST 9%' : 'IGST 18%' }})</td><td class="text-right">{{ $m($q->gst_amount) }}</td><td class="text-right" data-v="gst.gst"></td><td class="text-right">&mdash;</td><td class="text-right" data-v="t.gst"></td></tr>
+                            <tr @unless($q->gst_amount > 0) style="display:none" @endunless><td>GST ({{ $isCgst ? 'CGST 9% + SGST 9%' : 'IGST 18%' }})</td><td class="text-right">{{ $m($q->gst_amount) }}</td><td class="text-right" data-v="gst.gst"></td><td class="text-right" data-v="a.gst"></td><td class="text-right" data-v="t.gst"></td></tr>
                             <tr><td>Round Off</td><td class="text-right">{{ $m($q->round_off) }}</td><td class="text-right" data-v="gst.round"></td><td class="text-right" data-v="a.round"></td><td class="text-right" data-v="t.round"></td></tr>
                             <tr style="font-weight:700;"><td>Invoice Value</td><td class="text-right">{{ $m($q->total_amount) }}</td><td class="text-right" data-v="gst.total"></td><td class="text-right" data-v="a.total"></td><td class="text-right" data-v="t.total"></td></tr>
                         </tbody>
@@ -89,8 +90,8 @@
                 <p id="pct_error" class="text-danger" style="display:none;">Invoice % + A Invoice % must be exactly 100.</p>
                 <p class="form-hint">
                     Values are taken from the saved quotation (GST is not calculated again).
-                    Invoice = Invoice % of every item amount, discount, charges and the quotation's GST.
-                    A Invoice = remaining % of the item amounts, discount and charges, without GST.
+                    Every figure (item amounts, discount, admin charges, material handling charges and GST)
+                    is split by the % entered. Invoice + A Invoice always equals the quotation's Net Amount.
                     If a side is 0%, that invoice is not created.
                 </p>
 
@@ -123,9 +124,10 @@
             const discount = share(D.discount, isGst, pct);
             const charges = r2(share(D.admin, isGst, pct) + share(D.handling, isGst, pct));
             const taxable = r2(sub - discount + charges);
-            const gst = isGst ? r2(share(D.cgst, true, pct) + share(D.sgst, true, pct) + share(D.igst, true, pct)) : 0;
+            const gst = r2(share(D.cgst, isGst, pct) + share(D.sgst, isGst, pct) + share(D.igst, isGst, pct));
             const before = taxable + gst;
-            const total = Math.round(before);
+            // A Invoice takes the remainder of the quotation's net amount.
+            const total = (!isGst && pct < 100) ? r2(D.net - calc(true, r2(100 - pct)).total) : Math.round(before);
             return { sub, discount, charges, taxable, gst, round: r2(total - before), total };
         }
 

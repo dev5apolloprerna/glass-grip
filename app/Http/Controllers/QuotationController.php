@@ -267,15 +267,22 @@ class QuotationController extends Controller
         }
 
         $request->merge([
-            'invoice_number' => trim((string) $request->input('invoice_number')),
+            // Base number only - the A Invoice automatically gets "-A" (INV-002 / INV-002-A).
+            'invoice_number' => Invoice::baseNumber((string) $request->input('invoice_number')),
             'other_reference' => trim((string) $request->input('other_reference')),
         ]);
 
         $data = $request->validate([
             'invoice_percentage' => ['required', 'numeric', 'min:0', 'max:100'],
             'a_invoice_percentage' => ['required', 'numeric', 'min:0', 'max:100'],
-            // One common invoice number for both the Invoice and the A Invoice.
-            'invoice_number' => ['required', 'string', 'max:255', 'unique:invoices,invoice_number'],
+            'invoice_number' => [
+                'required', 'string', 'max:250', 'unique:invoices,invoice_number',
+                function ($attribute, $value, $fail) {
+                    if (Invoice::where('invoice_number', Invoice::numberFor($value, Invoice::TYPE_NON_GST))->exists()) {
+                        $fail('Invoice number ' . Invoice::numberFor($value, Invoice::TYPE_NON_GST) . ' is already used.');
+                    }
+                },
+            ],
             'other_reference' => ['nullable', 'string', 'max:255'],
             'invoice_date' => ['required', 'date'],
         ]);
@@ -301,7 +308,7 @@ class QuotationController extends Controller
                 $amounts = InvoiceSplitter::amounts($quotation, $type, $pct);
 
                 $invoice = Invoice::create([
-                    'invoice_number' => $data['invoice_number'],
+                    'invoice_number' => Invoice::numberFor($data['invoice_number'], $type),
                     'invoice_type' => $type,
                     'split_percentage' => $pct,
                     'other_reference' => $data['other_reference'] ?: null,

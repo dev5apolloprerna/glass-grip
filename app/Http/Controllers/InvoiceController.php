@@ -48,7 +48,8 @@ class InvoiceController extends Controller
         $this->authorizeAccess($invoice);
 
         $request->merge([
-            'invoice_number' => trim((string) $request->input('invoice_number')),
+            // Base number only - the A Invoice automatically gets "-A".
+            'invoice_number' => Invoice::baseNumber((string) $request->input('invoice_number')),
             'other_reference' => trim((string) $request->input('other_reference')),
         ]);
 
@@ -56,7 +57,15 @@ class InvoiceController extends Controller
         $siblings = Invoice::where('quotation_id', $invoice->quotation_id)->get();
 
         $data = $request->validate([
-            'invoice_number' => ['required', 'string', 'max:255', Rule::unique('invoices', 'invoice_number')->whereNotIn('id', $siblings->pluck('id')->all())],
+            'invoice_number' => [
+                'required', 'string', 'max:250',
+                function ($attribute, $value, $fail) use ($siblings) {
+                    $numbers = [Invoice::numberFor($value, Invoice::TYPE_GST), Invoice::numberFor($value, Invoice::TYPE_NON_GST)];
+                    if (Invoice::whereIn('invoice_number', $numbers)->whereNotIn('id', $siblings->pluck('id')->all())->exists()) {
+                        $fail('This invoice number is already used.');
+                    }
+                },
+            ],
             'invoice_date' => ['required', 'date'],
             'other_reference' => ['nullable', 'string', 'max:255'],
         ]);
@@ -64,7 +73,7 @@ class InvoiceController extends Controller
         DB::transaction(function () use ($siblings, $data) {
             foreach ($siblings as $inv) {
                 $inv->update([
-                    'invoice_number' => $data['invoice_number'],
+                    'invoice_number' => Invoice::numberFor($data['invoice_number'], $inv->invoice_type ?? Invoice::TYPE_GST),
                     'invoice_date' => $data['invoice_date'],
                     'other_reference' => $data['other_reference'] ?: null,
                 ]);
